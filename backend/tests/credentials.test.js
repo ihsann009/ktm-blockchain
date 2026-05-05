@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 
 jest.mock('../src/config/database', () => ({
   student: { findUnique: jest.fn() },
-  credential: { create: jest.fn(), findUnique: jest.fn(), findMany: jest.fn(), update: jest.fn() },
+  credential: { create: jest.fn(), findUnique: jest.fn(), findFirst: jest.fn(), findMany: jest.fn(), update: jest.fn() },
   activityLog: { create: jest.fn() },
 }));
 
@@ -59,6 +59,7 @@ beforeEach(() => {
 describe('POST /api/credentials/issue/:studentId', () => {
   it('issues credential for student (admin)', async () => {
     prisma.student.findUnique.mockResolvedValue(MOCK_STUDENT);
+    prisma.credential.findFirst.mockResolvedValue(null);
     prisma.credential.create.mockImplementation(async ({ data }) => ({
       id: 'cred-db-uuid',
       ...data,

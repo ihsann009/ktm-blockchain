@@ -24,8 +24,8 @@ const app = require('../src/index');
 const TEST_PRIVATE_KEY_HEX = process.env.ISSUER_PRIVATE_KEY;
 
 const MOCK_STUDENT = {
-  id: 'student-uuid-1',
-  userId: 'student-user-uuid',
+  id: 'a0000000-0000-4000-8000-000000000001',
+  userId: 'a0000000-0000-4000-8000-000000000002',
   nim: '20240001',
   fullName: 'Ahmad Fauzi',
   faculty: 'Ilmu Komputer',
@@ -104,7 +104,7 @@ beforeEach(() => {
 
 describe('POST /api/verify', () => {
   it('returns valid for a properly signed credential', async () => {
-    const credentialId = 'valid-cred-uuid';
+    const credentialId = 'b0000000-0000-4000-8000-000000000001';
     const jwtToken = await generateTestJwt(credentialId);
     const credentialHash = computeHash(jwtToken);
 
@@ -136,7 +136,7 @@ describe('POST /api/verify', () => {
 
     const res = await request(app)
       .post('/api/verify')
-      .send({ credentialId: 'nonexistent-uuid' });
+      .send({ credentialId: 'c0000000-0000-4000-8000-000000000099' });
 
     expect(res.status).toBe(200);
     expect(res.body.result).toBe('not_found');
@@ -144,7 +144,7 @@ describe('POST /api/verify', () => {
   });
 
   it('returns revoked for revoked credential', async () => {
-    const credentialId = 'revoked-cred-uuid';
+    const credentialId = 'b0000000-0000-4000-8000-000000000002';
     const jwtToken = await generateTestJwt(credentialId);
     const credentialHash = computeHash(jwtToken);
 
@@ -168,7 +168,7 @@ describe('POST /api/verify', () => {
   });
 
   it('returns expired for expired credential', async () => {
-    const credentialId = 'expired-cred-uuid';
+    const credentialId = 'b0000000-0000-4000-8000-000000000003';
     const jwtToken = await generateTestJwt(credentialId, { expired: true });
     const credentialHash = computeHash(jwtToken);
 
@@ -192,7 +192,7 @@ describe('POST /api/verify', () => {
   });
 
   it('returns hash_mismatch when stored hash differs from computed', async () => {
-    const credentialId = 'tampered-cred-uuid';
+    const credentialId = 'b0000000-0000-4000-8000-000000000004';
     const jwtToken = await generateTestJwt(credentialId);
 
     prisma.credential.findUnique.mockResolvedValue({
@@ -215,7 +215,7 @@ describe('POST /api/verify', () => {
   });
 
   it('returns invalid_signature when JWT signed with different key', async () => {
-    const credentialId = 'badsig-cred-uuid';
+    const credentialId = 'b0000000-0000-4000-8000-000000000005';
     const differentKey = 'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2';
     const jwtToken = await generateTestJwt(credentialId, { privateKeyHex: differentKey });
     const credentialHash = computeHash(jwtToken);
@@ -249,7 +249,7 @@ describe('POST /api/verify', () => {
   });
 
   it('checks blockchain when configured and returns revoked', async () => {
-    const credentialId = 'chain-revoked-uuid';
+    const credentialId = 'b0000000-0000-4000-8000-000000000006';
     const jwtToken = await generateTestJwt(credentialId);
     const credentialHash = computeHash(jwtToken);
 
@@ -281,7 +281,7 @@ describe('POST /api/verify', () => {
   });
 
   it('checks blockchain hash mismatch', async () => {
-    const credentialId = 'chain-mismatch-uuid';
+    const credentialId = 'b0000000-0000-4000-8000-000000000007';
     const jwtToken = await generateTestJwt(credentialId);
     const credentialHash = computeHash(jwtToken);
 
@@ -315,7 +315,7 @@ describe('POST /api/verify', () => {
 
 describe('GET /api/verify/:credentialId', () => {
   it('returns valid for a properly signed credential', async () => {
-    const credentialId = 'get-valid-uuid';
+    const credentialId = 'b0000000-0000-4000-8000-000000000008';
     const jwtToken = await generateTestJwt(credentialId);
     const credentialHash = computeHash(jwtToken);
 
@@ -341,7 +341,7 @@ describe('GET /api/verify/:credentialId', () => {
     prisma.credential.findUnique.mockResolvedValue(null);
 
     const res = await request(app)
-      .get('/api/verify/nonexistent-uuid');
+      .get('/api/verify/c0000000-0000-4000-8000-000000000099');
 
     expect(res.status).toBe(200);
     expect(res.body.result).toBe('not_found');
