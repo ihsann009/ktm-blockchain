@@ -189,6 +189,7 @@ router.get('/:id', async (req, res, next) => {
 router.put('/:id', async (req, res, next) => {
   try {
     const allowedFields = ['nim', 'fullName', 'faculty', 'department', 'enrollmentYear', 'academicStatus', 'photoPath'];
+    const criticalFields = ['nim', 'fullName', 'faculty', 'department', 'enrollmentYear'];
     const updateData = {};
 
     for (const field of allowedFields) {
@@ -210,6 +211,22 @@ router.put('/:id', async (req, res, next) => {
       return res.status(400).json({ error: 'No valid student fields provided for update' });
     }
 
+    const currentStudent = await prisma.student.findUnique({
+      where: { id: req.params.id },
+    });
+
+    if (!currentStudent) {
+      return res.status(404).json({ error: 'Student not found' });
+    }
+
+    const changedCriticalFields = criticalFields.filter(
+      (f) => updateData[f] !== undefined && String(updateData[f]) !== String(currentStudent[f])
+    );
+
+    const activeCredential = await prisma.credential.findFirst({
+      where: { studentId: req.params.id, status: 'active' },
+    });
+
     const student = await prisma.student.update({
       where: { id: req.params.id },
       data: updateData,
@@ -220,13 +237,20 @@ router.put('/:id', async (req, res, next) => {
       },
     });
 
+    const credentialWarning = (changedCriticalFields.length > 0 && activeCredential)
+      ? `Critical fields changed (${changedCriticalFields.join(', ')}). Active credential contains stale data — re-issue recommended.`
+      : null;
+
     await logActivity({
       actorId: req.user.userId,
       actionType: 'student_updated',
-      description: `Student ${student.fullName} (${student.nim}) was updated`,
+      description: `Student ${student.fullName} (${student.nim}) was updated. Fields: ${Object.keys(updateData).join(', ')}${credentialWarning ? '. WARNING: ' + credentialWarning : ''}`,
     });
 
-    return res.json({ data: mapStudent(student) });
+    return res.json({
+      data: mapStudent(student),
+      warning: credentialWarning,
+    });
   } catch (error) {
     if (error.code === 'P2025') {
       return res.status(404).json({ error: 'Student not found' });
