@@ -8,6 +8,7 @@ import QRCodeComponent from '@/components/qr-code';
 export default function StudentCardPage() {
   const { user } = useAuth();
   const [credential, setCredential] = useState(null);
+  const [allCredentials, setAllCredentials] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -18,14 +19,15 @@ export default function StudentCardPage() {
       try {
         setLoading(true);
         const response = await api.get(`/credentials/student/${user.student.id}`);
-        
-        const activeCreds = response.data?.filter(c => c.status === 'active') || [];
+        const creds = response.data || [];
+        creds.sort((a, b) => new Date(b.issuanceDate) - new Date(a.issuanceDate));
+        setAllCredentials(creds);
+
+        const activeCreds = creds.filter(c => c.status === 'active');
         if (activeCreds.length > 0) {
-          activeCreds.sort((a, b) => new Date(b.issuanceDate) - new Date(a.issuanceDate));
           setCredential(activeCreds[0]);
-        } else if (response.data && response.data.length > 0) {
-          response.data.sort((a, b) => new Date(b.issuanceDate) - new Date(a.issuanceDate));
-          setCredential(response.data[0]);
+        } else if (creds.length > 0) {
+          setCredential(creds[0]);
         }
       } catch (err) {
         console.error('Failed to fetch credentials:', err);
@@ -109,6 +111,7 @@ export default function StudentCardPage() {
           </p>
         </div>
       ) : (
+        <>
         <div className="flex flex-col lg:flex-row gap-6 md:gap-8 items-start">
           <div className="flex-1 w-full relative overflow-hidden bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-slate-200 group">
             <div className="h-36 bg-gradient-to-br from-primary-600 to-primary-700 relative overflow-hidden">
@@ -243,6 +246,58 @@ export default function StudentCardPage() {
             </div>
           </div>
         </div>
+
+        {allCredentials.length > 1 && (
+          <div className="w-full mt-8">
+            <div className="card overflow-hidden">
+              <div className="px-6 py-4 border-b border-slate-100">
+                <h3 className="font-bold text-slate-900">Riwayat Credential</h3>
+                <p className="text-xs text-slate-500 mt-0.5">Semua credential yang pernah diterbitkan untuk Anda</p>
+              </div>
+              <div className="divide-y divide-slate-50">
+                {allCredentials.map((cred, idx) => (
+                  <div key={cred.id} className={`px-6 py-4 flex items-center gap-4 ${cred.credentialId === credential?.credentialId ? 'bg-primary-50/30' : 'hover:bg-slate-50/50'} transition-colors`}>
+                    <div className="relative">
+                      <div className={`w-3 h-3 rounded-full ${cred.status === 'active' ? 'bg-green-500' : cred.status === 'revoked' ? 'bg-red-500' : 'bg-yellow-500'} ring-4 ring-white`}></div>
+                      {idx < allCredentials.length - 1 && (
+                        <div className="absolute top-4 left-1.5 w-px h-8 bg-slate-200"></div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-slate-800 truncate font-mono">
+                          {cred.credentialId.substring(0, 8)}...
+                        </span>
+                        <span className={cred.status === 'active' ? 'badge-green' : cred.status === 'revoked' ? 'badge-red' : 'badge-yellow'}>
+                          {cred.status}
+                        </span>
+                        {cred.credentialId === credential?.credentialId && (
+                          <span className="badge-blue">Current</span>
+                        )}
+                      </div>
+                      <p className="text-xs text-slate-500 mt-1">
+                        Diterbitkan {formatDate(cred.issuanceDate)}
+                      </p>
+                    </div>
+                    <div className="shrink-0">
+                      {cred.blockchainTxHash ? (
+                        <span className="text-xs text-emerald-600 font-medium flex items-center gap-1">
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                          On-Chain
+                        </span>
+                      ) : (
+                        <span className="text-xs text-amber-600 font-medium">Pending</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+        </>
       )}
     </div>
   );

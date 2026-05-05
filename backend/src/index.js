@@ -8,6 +8,7 @@ const authRoutes = require('./routes/auth');
 const studentRoutes = require('./routes/students');
 const credentialRoutes = require('./routes/credentials');
 const verifyRoutes = require('./routes/verify');
+const dashboardRoutes = require('./routes/dashboard');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -23,6 +24,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/credentials', credentialRoutes);
 app.use('/api/verify', verifyRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // Well-known endpoints
 app.get('/.well-known/jwks.json', require('./routes/wellknown').jwks);

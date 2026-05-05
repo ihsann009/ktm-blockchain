@@ -9,11 +9,14 @@ export default function StudentsPage() {
   const [pagination, setPagination] = useState({ page: 1, limit: 10, totalPages: 1 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [search, setSearch] = useState('');
+  const [searchTimeout, setSearchTimeout] = useState(null);
 
-  const fetchStudents = async (page = 1) => {
+  const fetchStudents = async (page = 1, query = search) => {
     try {
       setLoading(true);
-      const res = await api.get(`/students?page=${page}&limit=${pagination.limit}`);
+      const searchParam = query ? `&search=${encodeURIComponent(query)}` : '';
+      const res = await api.get(`/students?page=${page}&limit=${pagination.limit}${searchParam}`);
       setStudents(res.data || []);
       setPagination(res.pagination || { page: 1, limit: 10, totalPages: 1 });
     } catch (err) {
@@ -24,8 +27,17 @@ export default function StudentsPage() {
   };
 
   useEffect(() => {
-    fetchStudents(1);
+    fetchStudents(1, '');
   }, []);
+
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearch(value);
+    if (searchTimeout) clearTimeout(searchTimeout);
+    setSearchTimeout(setTimeout(() => {
+      fetchStudents(1, value);
+    }, 400));
+  };
 
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= pagination.totalPages) {
@@ -60,7 +72,6 @@ export default function StudentsPage() {
         </div>
       )}
 
-      {/* Optional Search/Filter Bar Placeholder */}
       <div className="card p-4 flex items-center gap-4">
         <div className="relative flex-1 max-w-md">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -71,10 +82,19 @@ export default function StudentsPage() {
           <input
             type="text"
             className="input-field pl-10"
-            placeholder="Cari NIM atau Nama (Visual Only)..."
-            disabled
+            placeholder="Cari NIM atau Nama..."
+            value={search}
+            onChange={handleSearchChange}
           />
         </div>
+        {search && (
+          <button
+            onClick={() => { setSearch(''); fetchStudents(1, ''); }}
+            className="text-sm text-slate-500 hover:text-slate-700 font-medium"
+          >
+            Reset
+          </button>
+        )}
       </div>
 
       <div className="card overflow-hidden">

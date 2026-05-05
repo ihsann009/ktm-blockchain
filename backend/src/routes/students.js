@@ -40,9 +40,20 @@ router.get('/', async (req, res, next) => {
     const page = Math.max(Number.parseInt(req.query.page, 10) || 1, 1);
     const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 10, 1), 100);
     const skip = (page - 1) * limit;
+    const search = req.query.search?.trim() || '';
+
+    const where = search
+      ? {
+          OR: [
+            { nim: { contains: search, mode: 'insensitive' } },
+            { fullName: { contains: search, mode: 'insensitive' } },
+          ],
+        }
+      : {};
 
     const [students, total] = await Promise.all([
       prisma.student.findMany({
+        where,
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
@@ -61,7 +72,7 @@ router.get('/', async (req, res, next) => {
           },
         },
       }),
-      prisma.student.count(),
+      prisma.student.count({ where }),
     ]);
 
     return res.json({
