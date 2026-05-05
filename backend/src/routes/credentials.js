@@ -218,6 +218,108 @@ router.get('/:credentialId', async (req, res, next) => {
   }
 });
 
+router.post('/retry-anchor/:credentialId', roleGuard('admin'), async (req, res, next) => {
+  try {
+    if (!blockchain.isConfigured()) {
+      return res.status(503).json({ error: 'Blockchain service not configured' });
+    }
+
+    const credential = await prisma.credential.findUnique({
+      where: { credentialId: req.params.credentialId },
+    });
+
+    if (!credential) {
+      return res.status(404).json({ error: 'Credential not found' });
+    }
+
+    if (credential.blockchainTxHash) {
+      return res.status(400).json({ error: 'Credential is already anchored on-chain' });
+    }
+
+    if (credential.status !== 'active') {
+      return res.status(400).json({ error: 'Only active credentials can be anchored' });
+    }
+
+    const txHash = await blockchain.anchorCredential(
+      credential.credentialId,
+      credential.credentialHash,
+      credential.issuanceDate,
+      credential.expirationDate
+    );
+
+    const updated = await prisma.credential.update({
+      where: { id: credential.id },
+      data: { blockchainTxHash: txHash },
+      include: {
+        student: {
+          include: { user: { select: { email: true } } },
+        },
+      },
+    });
+
+    await logActivity({
+      actorId: req.user.userId,
+      actionType: 'credential_anchored',
+      description: `Credential ${credential.credentialId} anchored on-chain (retry) (tx: ${txHash})`,
+    });
+
+    return res.json({ data: mapCredential(updated) });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.post('/retry-anchor-all', roleGuard('admin'), async (req, res, next) => {
+  try {
+    if (!blockchain.isConfigured()) {
+      return res.status(503).json({ error: 'Blockchain service not configured' });
+    }
+
+    const pending = await prisma.credential.findMany({
+      where: { blockchainTxHash: null, status: 'active' },
+      orderBy: { issuanceDate: 'asc' },
+    });
+
+    if (pending.length === 0) {
+      return res.json({ message: 'No pending credentials to anchor', results: [] });
+    }
+
+    const results = [];
+    for (const cred of pending) {
+      try {
+        const txHash = await blockchain.anchorCredential(
+          cred.credentialId,
+          cred.credentialHash,
+          cred.issuanceDate,
+          cred.expirationDate
+        );
+
+        await prisma.credential.update({
+          where: { id: cred.id },
+          data: { blockchainTxHash: txHash },
+        });
+
+        results.push({ credentialId: cred.credentialId, status: 'anchored', txHash });
+      } catch (err) {
+        results.push({ credentialId: cred.credentialId, status: 'failed', error: err.message });
+      }
+    }
+
+    const anchored = results.filter((r) => r.status === 'anchored');
+    if (anchored.length > 0) {
+      await logActivity({
+        actorId: req.user.userId,
+        actionType: 'batch_anchor',
+        description: `Batch anchored ${anchored.length}/${pending.length} credentials on-chain`,
+      });
+    }
+
+    return res.json({ message: `Processed ${pending.length} credentials`, results });
+  } catch (error) {
+    return next(error);
+  }
+});
+
 router.post('/revoke/:credentialId', roleGuard('admin'), async (req, res, next) => {
   try {
     const existingCredential = await prisma.credential.findUnique({
