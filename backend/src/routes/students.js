@@ -11,6 +11,7 @@ const router = express.Router();
 router.use(authenticate, roleGuard('admin'));
 
 function mapStudent(student) {
+  const latestCredential = student.credentials?.[0] || null;
   return {
     id: student.id,
     userId: student.userId,
@@ -24,6 +25,13 @@ function mapStudent(student) {
     photoPath: student.photoPath,
     createdAt: student.createdAt,
     updatedAt: student.updatedAt,
+    credential: latestCredential
+      ? {
+          status: latestCredential.status,
+          blockchainTxHash: latestCredential.blockchainTxHash,
+          credentialId: latestCredential.credentialId,
+        }
+      : null,
   };
 }
 
@@ -41,6 +49,15 @@ router.get('/', async (req, res, next) => {
         include: {
           user: {
             select: { email: true },
+          },
+          credentials: {
+            orderBy: { issuanceDate: 'desc' },
+            take: 1,
+            select: {
+              status: true,
+              blockchainTxHash: true,
+              credentialId: true,
+            },
           },
         },
       }),
@@ -135,6 +152,15 @@ router.get('/:id', async (req, res, next) => {
       include: {
         user: {
           select: { email: true },
+        },
+        credentials: {
+          orderBy: { issuanceDate: 'desc' },
+          take: 1,
+          select: {
+            status: true,
+            blockchainTxHash: true,
+            credentialId: true,
+          },
         },
       },
     });
