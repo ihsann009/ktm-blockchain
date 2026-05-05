@@ -216,13 +216,23 @@ export default function StudentDetailPage() {
                       </div>
                     )}
                   </div>
-                  <div className="ml-4 flex flex-col items-end">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full mb-3 ${
+                  <div className="ml-4 flex flex-col items-end gap-2">
+                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                       cred.status === 'active' ? 'bg-green-100 text-green-800' : 
                       cred.status === 'revoked' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'
                     }`}>
                       {cred.status}
                     </span>
+
+                    {cred.blockchainTxHash ? (
+                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                        ⛓ On-Chain
+                      </span>
+                    ) : (
+                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-amber-100 text-amber-800">
+                        ⏳ Pending Anchor
+                      </span>
+                    )}
                     
                     {cred.status === 'active' && (
                       <button
