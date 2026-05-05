@@ -64,6 +64,35 @@ router.post('/issue/:studentId', roleGuard('admin'), async (req, res, next) => {
       return res.status(404).json({ error: 'Student not found' });
     }
 
+    // Check for existing active credential — auto-revoke if found
+    const existingActive = await prisma.credential.findFirst({
+      where: { studentId: student.id, status: 'active' },
+      orderBy: { issuanceDate: 'desc' },
+    });
+
+    if (existingActive) {
+      // Revoke on blockchain if anchored
+      if (blockchain.isConfigured() && existingActive.blockchainTxHash) {
+        try {
+          await blockchain.revokeOnChain(existingActive.credentialId);
+        } catch (err) {
+          console.error('Blockchain revocation of previous credential failed:', err.message);
+        }
+      }
+
+      // Mark old credential as revoked in DB
+      await prisma.credential.update({
+        where: { id: existingActive.id },
+        data: { status: 'revoked' },
+      });
+
+      await logActivity({
+        actorId: req.user.userId,
+        actionType: 'credential_revoked',
+        description: `Credential ${existingActive.credentialId} auto-revoked (replaced by new issuance) for student ${student.nim}`,
+      });
+    }
+
     const credentialPayload = await generateCredential(student);
 
     let blockchainTxHash = null;
@@ -90,6 +119,7 @@ router.post('/issue/:studentId', roleGuard('admin'), async (req, res, next) => {
         expirationDate: credentialPayload.expirationDate,
         status: 'active',
         blockchainTxHash,
+        previousCredentialId: existingActive ? existingActive.credentialId : null,
       },
       include: {
         student: {
@@ -105,7 +135,7 @@ router.post('/issue/:studentId', roleGuard('admin'), async (req, res, next) => {
     await logActivity({
       actorId: req.user.userId,
       actionType: 'credential_issued',
-      description: `Credential ${credential.credentialId} issued for student ${student.nim}${blockchainTxHash ? ` (tx: ${blockchainTxHash})` : ' (pending_anchor)'}`,
+      description: `Credential ${credential.credentialId} issued for student ${student.nim}${existingActive ? ` (replaces ${existingActive.credentialId})` : ''}${blockchainTxHash ? ` (tx: ${blockchainTxHash})` : ' (pending_anchor)'}`,
     });
 
     return res.status(201).json({ data: mapCredential(credential) });
