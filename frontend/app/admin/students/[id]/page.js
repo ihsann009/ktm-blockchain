@@ -154,9 +154,17 @@ export default function StudentDetailPage() {
             </svg>
             Informasi Pribadi
           </h3>
-          <span className={student.academicStatus === 'active' ? 'badge-green' : 'badge-red'}>
-            {student.academicStatus || 'Unknown'}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className={student.academicStatus === 'active' ? 'badge-green' : 'badge-red'}>
+              {student.academicStatus || 'Unknown'}
+            </span>
+            <Link href={`/admin/students/${id}/edit`} className="btn-secondary text-xs px-3 py-1.5">
+              <svg className="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              Edit
+            </Link>
+          </div>
         </div>
         <div className="p-6">
           <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
