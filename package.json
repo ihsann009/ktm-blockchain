@@ -1,0 +1,23 @@
+{
+  "name": "ktm-blockchain",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Sistem KTM Digital berbasis JWT-VC dan Blockchain Hash Anchoring",
+  "workspaces": [
+    "backend",
+    "frontend",
+    "contracts"
+  ],
+  "scripts": {
+    "dev:backend": "npm run dev --workspace=backend",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "build": "npm run build --workspaces",
+    "lint": "npm run lint --workspaces"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "ws": "^8.20.0"
+  }
+}

@@ -1,0 +1,94 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  email        String   @unique @db.VarChar(255)
+  passwordHash String   @map("password_hash") @db.VarChar(255)
+  role         Role
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  student      Student?
+  activityLogs ActivityLog[]
+
+  @@map("users")
+}
+
+model Student {
+  id             String   @id @default(uuid()) @db.Uuid
+  userId         String   @unique @map("user_id") @db.Uuid
+  nim            String   @unique @db.VarChar(20)
+  fullName       String   @map("full_name") @db.VarChar(255)
+  faculty        String   @db.VarChar(255)
+  department     String   @db.VarChar(255)
+  enrollmentYear Int      @map("enrollment_year")
+  academicStatus String   @default("active") @map("academic_status") @db.VarChar(20)
+  photoPath      String?  @map("photo_path") @db.VarChar(500)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  user        User         @relation(fields: [userId], references: [id])
+  credentials Credential[]
+
+  @@map("students")
+}
+
+model Credential {
+  id                   String           @id @default(uuid()) @db.Uuid
+  studentId            String           @map("student_id") @db.Uuid
+  credentialId         String           @unique @map("credential_id") @db.Uuid
+  jwtToken             String           @map("jwt_token") @db.Text
+  credentialHash       String           @map("credential_hash") @db.VarChar(64)
+  issuanceDate         DateTime         @map("issuance_date")
+  expirationDate       DateTime         @map("expiration_date")
+  status               CredentialStatus @default(active)
+  blockchainTxHash     String?          @map("blockchain_tx_hash") @db.VarChar(66)
+  previousCredentialId String?          @map("previous_credential_id") @db.Uuid
+  createdAt            DateTime         @default(now()) @map("created_at")
+  updatedAt            DateTime         @updatedAt @map("updated_at")
+
+  student Student @relation(fields: [studentId], references: [id])
+
+  @@map("credentials")
+}
+
+model VerificationLog {
+  id            String   @id @default(uuid()) @db.Uuid
+  credentialId  String   @map("credential_id") @db.Uuid
+  verifierInput String?  @map("verifier_input") @db.VarChar(255)
+  result        String   @db.VarChar(30)
+  checkedAt     DateTime @default(now()) @map("checked_at")
+
+  @@map("verification_logs")
+}
+
+model ActivityLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  actorId     String?  @map("actor_id") @db.Uuid
+  actionType  String   @map("action_type") @db.VarChar(50)
+  description String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  actor User? @relation(fields: [actorId], references: [id])
+
+  @@map("activity_logs")
+}
+
+enum Role {
+  admin
+  student
+  verifier
+}
+
+enum CredentialStatus {
+  active
+  revoked
+  expired
+}

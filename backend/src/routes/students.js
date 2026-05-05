@@ -1,0 +1,206 @@
+const express = require('express');
+const bcrypt = require('bcryptjs');
+
+const prisma = require('../config/database');
+const { authenticate } = require('../middleware/auth');
+const { roleGuard } = require('../middleware/roleGuard');
+const { logActivity } = require('../services/activity.service');
+
+const router = express.Router();
+
+router.use(authenticate, roleGuard('admin'));
+
+function mapStudent(student) {
+  return {
+    id: student.id,
+    userId: student.userId,
+    email: student.user?.email || null,
+    nim: student.nim,
+    fullName: student.fullName,
+    faculty: student.faculty,
+    department: student.department,
+    enrollmentYear: student.enrollmentYear,
+    academicStatus: student.academicStatus,
+    photoPath: student.photoPath,
+    createdAt: student.createdAt,
+    updatedAt: student.updatedAt,
+  };
+}
+
+router.get('/', async (req, res, next) => {
+  try {
+    const page = Math.max(Number.parseInt(req.query.page, 10) || 1, 1);
+    const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 10, 1), 100);
+    const skip = (page - 1) * limit;
+
+    const [students, total] = await Promise.all([
+      prisma.student.findMany({
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          user: {
+            select: { email: true },
+          },
+        },
+      }),
+      prisma.student.count(),
+    ]);
+
+    return res.json({
+      data: students.map(mapStudent),
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.post('/', async (req, res, next) => {
+  try {
+    const {
+      email,
+      password,
+      nim,
+      fullName,
+      faculty,
+      department,
+      enrollmentYear,
+    } = req.body || {};
+
+    if (!email || !password || !nim || !fullName || !faculty || !department || !enrollmentYear) {
+      return res.status(400).json({
+        error: 'email, password, nim, fullName, faculty, department, and enrollmentYear are required',
+      });
+    }
+
+    const parsedEnrollmentYear = Number.parseInt(enrollmentYear, 10);
+    if (Number.isNaN(parsedEnrollmentYear)) {
+      return res.status(400).json({ error: 'enrollmentYear must be a valid number' });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    const student = await prisma.$transaction(async (tx) => {
+      const user = await tx.user.create({
+        data: {
+          email,
+          passwordHash,
+          role: 'student',
+        },
+      });
+
+      return tx.student.create({
+        data: {
+          userId: user.id,
+          nim,
+          fullName,
+          faculty,
+          department,
+          enrollmentYear: parsedEnrollmentYear,
+        },
+        include: {
+          user: {
+            select: { email: true },
+          },
+        },
+      });
+    });
+
+    await logActivity({
+      actorId: req.user.userId,
+      actionType: 'student_created',
+      description: `Student ${student.fullName} (${student.nim}) was created`,
+    });
+
+    return res.status(201).json({ data: mapStudent(student) });
+  } catch (error) {
+    if (error.code === 'P2002') {
+      return res.status(409).json({ error: 'Student email or NIM already exists' });
+    }
+
+    return next(error);
+  }
+});
+
+router.get('/:id', async (req, res, next) => {
+  try {
+    const student = await prisma.student.findUnique({
+      where: { id: req.params.id },
+      include: {
+        user: {
+          select: { email: true },
+        },
+      },
+    });
+
+    if (!student) {
+      return res.status(404).json({ error: 'Student not found' });
+    }
+
+    return res.json({ data: mapStudent(student) });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.put('/:id', async (req, res, next) => {
+  try {
+    const allowedFields = ['nim', 'fullName', 'faculty', 'department', 'enrollmentYear', 'academicStatus', 'photoPath'];
+    const updateData = {};
+
+    for (const field of allowedFields) {
+      if (req.body[field] !== undefined) {
+        updateData[field] = req.body[field];
+      }
+    }
+
+    if (updateData.enrollmentYear !== undefined) {
+      const parsedEnrollmentYear = Number.parseInt(updateData.enrollmentYear, 10);
+      if (Number.isNaN(parsedEnrollmentYear)) {
+        return res.status(400).json({ error: 'enrollmentYear must be a valid number' });
+      }
+
+      updateData.enrollmentYear = parsedEnrollmentYear;
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ error: 'No valid student fields provided for update' });
+    }
+
+    const student = await prisma.student.update({
+      where: { id: req.params.id },
+      data: updateData,
+      include: {
+        user: {
+          select: { email: true },
+        },
+      },
+    });
+
+    await logActivity({
+      actorId: req.user.userId,
+      actionType: 'student_updated',
+      description: `Student ${student.fullName} (${student.nim}) was updated`,
+    });
+
+    return res.json({ data: mapStudent(student) });
+  } catch (error) {
+    if (error.code === 'P2025') {
+      return res.status(404).json({ error: 'Student not found' });
+    }
+
+    if (error.code === 'P2002') {
+      return res.status(409).json({ error: 'Student NIM already exists' });
+    }
+
+    return next(error);
+  }
+});
+
+module.exports = router;
