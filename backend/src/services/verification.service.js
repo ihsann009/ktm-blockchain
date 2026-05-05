@@ -6,6 +6,7 @@ const { getIssuerPublicJwk } = require('./credential.service');
 
 const RESULT = {
   VALID: 'valid',
+  VALID_UNANCHORED: 'valid_unanchored',
   NOT_FOUND: 'not_found',
   INVALID_SIGNATURE: 'invalid_signature',
   HASH_MISMATCH: 'hash_mismatch',
@@ -82,17 +83,22 @@ async function verifyCredential(credentialId) {
     };
   }
 
-  if (blockchain.isConfigured()) {
+  let blockchainVerified = false;
+  let blockchainAnchored = !!credential.blockchainTxHash;
+
+  if (blockchain.isConfigured() && blockchainAnchored) {
     try {
       const onChainData = await blockchain.getCredentialFromChain(credentialId);
 
-      if (onChainData) {
+      if (onChainData && onChainData.issuedAt > 0) {
         if (onChainData.revoked) {
           await logVerification(credentialId, RESULT.REVOKED);
           return {
             result: RESULT.REVOKED,
             credential: mapCredentialResponse(credential),
             student: mapStudentResponse(credential.student),
+            blockchainVerified: true,
+            blockchainAnchored: true,
           };
         }
 
@@ -102,12 +108,27 @@ async function verifyCredential(credentialId) {
             result: RESULT.HASH_MISMATCH,
             credential: mapCredentialResponse(credential),
             student: null,
+            blockchainVerified: true,
+            blockchainAnchored: true,
           };
         }
+
+        blockchainVerified = true;
       }
     } catch (err) {
       console.error('Blockchain verification query failed:', err.message);
     }
+  }
+
+  if (!blockchainAnchored || !blockchainVerified) {
+    await logVerification(credentialId, RESULT.VALID_UNANCHORED);
+    return {
+      result: RESULT.VALID_UNANCHORED,
+      credential: mapCredentialResponse(credential),
+      student: mapStudentResponse(credential.student),
+      blockchainVerified: false,
+      blockchainAnchored,
+    };
   }
 
   await logVerification(credentialId, RESULT.VALID);
@@ -115,6 +136,8 @@ async function verifyCredential(credentialId) {
     result: RESULT.VALID,
     credential: mapCredentialResponse(credential),
     student: mapStudentResponse(credential.student),
+    blockchainVerified: true,
+    blockchainAnchored: true,
   };
 }
 

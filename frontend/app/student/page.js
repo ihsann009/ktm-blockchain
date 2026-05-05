@@ -176,10 +176,21 @@ export default function StudentCardPage() {
                 
                 <div className="mt-4 flex items-center justify-between bg-slate-900 text-slate-300 px-4 py-2.5 rounded-lg text-xs font-mono">
                   <div className="flex items-center gap-2 overflow-hidden">
-                    <svg className="w-4 h-4 text-primary-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                    </svg>
-                    <span className="truncate">{truncateHash(credential.blockchainTxHash)}</span>
+                    {credential.blockchainTxHash ? (
+                      <>
+                        <svg className="w-4 h-4 text-green-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                        </svg>
+                        <span className="truncate">{truncateHash(credential.blockchainTxHash)}</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4 text-amber-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span className="text-amber-300">Blockchain: Pending Anchor</span>
+                      </>
+                    )}
                   </div>
                   <div className="shrink-0 ml-4">
                     {getStatusBadge(credential.status)}
@@ -196,7 +207,7 @@ export default function StudentCardPage() {
               
               <div className={`p-4 rounded-xl ${credential.status !== 'active' ? 'opacity-50 grayscale' : 'bg-primary-50'}`}>
                 <QRCodeComponent 
-                  text={credential.credentialId} 
+                  text={`${process.env.NEXT_PUBLIC_VERIFY_URL || 'http://localhost:3002'}/verify?id=${credential.credentialId}`} 
                   size={200}
                 />
               </div>

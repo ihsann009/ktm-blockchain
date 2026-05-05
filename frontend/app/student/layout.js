@@ -16,7 +16,7 @@ export default function StudentLayout({ children }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-bgbase flex items-center justify-center">
         <div className="animate-pulse flex flex-col items-center">
           <div className="h-12 w-12 bg-slate-200 rounded-full mb-4"></div>
           <div className="h-4 w-24 bg-slate-200 rounded"></div>
@@ -35,7 +35,7 @@ export default function StudentLayout({ children }) {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-bgbase">
       <header className="bg-surface shadow-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">

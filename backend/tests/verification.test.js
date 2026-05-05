@@ -124,7 +124,9 @@ describe('POST /api/verify', () => {
       .send({ credentialId });
 
     expect(res.status).toBe(200);
-    expect(res.body.result).toBe('valid');
+    expect(res.body.result).toBe('valid_unanchored');
+    expect(res.body.blockchainAnchored).toBe(true);
+    expect(res.body.blockchainVerified).toBe(false);
     expect(res.body.student.nim).toBe('20240001');
     expect(res.body.credential.credentialId).toBe(credentialId);
   });
@@ -332,7 +334,7 @@ describe('GET /api/verify/:credentialId', () => {
       .get(`/api/verify/${credentialId}`);
 
     expect(res.status).toBe(200);
-    expect(res.body.result).toBe('valid');
+    expect(res.body.result).toBe('valid_unanchored');
   });
 
   it('returns not_found for non-existent credentialId', async () => {

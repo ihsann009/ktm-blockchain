@@ -3,9 +3,9 @@ const path = require('path');
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    path.join(__dirname, 'app/**/*.{js,jsx}'),
-    path.join(__dirname, 'components/**/*.{js,jsx}'),
-    path.join(__dirname, 'lib/**/*.{js,jsx}'),
+    path.join(__dirname, 'frontend/app/**/*.{js,jsx}'),
+    path.join(__dirname, 'frontend/components/**/*.{js,jsx}'),
+    path.join(__dirname, 'frontend/lib/**/*.{js,jsx}'),
   ],
   theme: {
     extend: {

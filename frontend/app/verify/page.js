@@ -1,15 +1,26 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import QrScanner from '@/components/qr-scanner';
 
 export default function VerifyPage() {
+  const searchParams = useSearchParams();
   const [credentialId, setCredentialId] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+
+  // Auto-verify if ?id= query param is present
+  useEffect(() => {
+    const idFromUrl = searchParams.get('id');
+    if (idFromUrl) {
+      setCredentialId(idFromUrl);
+      verifyCredential(idFromUrl);
+    }
+  }, [searchParams]);
 
   const verifyCredential = async (idToVerify) => {
     if (!idToVerify || !idToVerify.trim()) {
@@ -44,9 +55,19 @@ export default function VerifyPage() {
     }
   };
 
+  const extractCredentialId = (text) => {
+    try {
+      const url = new URL(text);
+      const idParam = url.searchParams.get('id');
+      if (idParam) return idParam;
+    } catch {}
+    return text;
+  };
+
   const handleScanSuccess = (decodedText) => {
-    setCredentialId(decodedText);
-    verifyCredential(decodedText);
+    const id = extractCredentialId(decodedText);
+    setCredentialId(id);
+    verifyCredential(id);
   };
 
   const handleSubmit = (e) => {
@@ -65,20 +86,46 @@ export default function VerifyPage() {
 
     const { result: status, student } = result;
 
-    if (status === 'valid') {
+    if (status === 'valid' || status === 'valid_unanchored') {
+      const isFullyVerified = status === 'valid';
+      const borderColor = isFullyVerified ? 'border-green-500' : 'border-blue-500';
+      const headerBg = isFullyVerified ? 'bg-green-50' : 'bg-blue-50';
+      const headerBorder = isFullyVerified ? 'border-green-100' : 'border-blue-100';
+      const iconBg = isFullyVerified ? 'bg-green-500' : 'bg-blue-500';
+      const titleColor = isFullyVerified ? 'text-green-800' : 'text-blue-800';
+      const descColor = isFullyVerified ? 'text-green-600' : 'text-blue-600';
+
       return (
-        <div className="bg-white border-2 border-green-500 rounded-xl shadow-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-          <div className="bg-green-50 px-6 py-4 border-b border-green-100 flex items-center gap-3">
-            <div className="w-10 h-10 bg-green-500 text-white rounded-full flex items-center justify-center shrink-0 shadow-sm">
+        <div className={`bg-white border-2 ${borderColor} rounded-xl shadow-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200`}>
+          <div className={`${headerBg} px-6 py-4 border-b ${headerBorder} flex items-center gap-3`}>
+            <div className={`w-10 h-10 ${iconBg} text-white rounded-full flex items-center justify-center shrink-0 shadow-sm`}>
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
               </svg>
             </div>
             <div>
-              <h2 className="text-lg font-bold text-green-800">Valid Credential</h2>
-              <p className="text-sm text-green-600 font-medium">Digital signature and blockchain integrity verified.</p>
+              <h2 className={`text-lg font-bold ${titleColor}`}>
+                {isFullyVerified ? 'Valid Credential' : 'Valid Credential (Unanchored)'}
+              </h2>
+              <p className={`text-sm ${descColor} font-medium`}>
+                {isFullyVerified
+                  ? 'Digital signature and blockchain integrity verified.'
+                  : 'Digital signature verified. Blockchain anchoring pending.'}
+              </p>
             </div>
           </div>
+
+          {!isFullyVerified && (
+            <div className="mx-6 mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2">
+              <svg className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <div className="text-sm text-amber-800">
+                <p className="font-medium">Blockchain not verified</p>
+                <p className="text-amber-700 mt-0.5">This credential has not been anchored to the blockchain yet. Signature is valid but on-chain integrity cannot be confirmed.</p>
+              </div>
+            </div>
+          )}
           
           <div className="p-6">
             <h3 className="text-sm uppercase tracking-wider text-slate-400 font-bold mb-4">Student Identity</h3>
@@ -100,7 +147,7 @@ export default function VerifyPage() {
                 <div>
                   <p className="text-sm text-slate-500 mb-1">Status</p>
                   <p className="text-slate-800 capitalize">
-                    <span className="inline-block w-2 h-2 rounded-full bg-green-500 mr-2"></span>
+                    <span className={`inline-block w-2 h-2 rounded-full ${isFullyVerified ? 'bg-green-500' : 'bg-blue-500'} mr-2`}></span>
                     {student.academicStatus || 'Active'}
                   </p>
                 </div>
@@ -108,8 +155,21 @@ export default function VerifyPage() {
             ) : (
               <p className="text-slate-500 italic">Student details not available.</p>
             )}
+
+            <div className="mt-6 pt-4 border-t border-slate-100">
+              <div className="flex items-center gap-6 text-xs">
+                <div className="flex items-center gap-1.5">
+                  <span className={`w-2 h-2 rounded-full ${isFullyVerified ? 'bg-green-500' : 'bg-green-500'}`}></span>
+                  <span className="text-slate-500">Signature: <span className="font-medium text-green-700">Verified</span></span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className={`w-2 h-2 rounded-full ${isFullyVerified ? 'bg-green-500' : 'bg-amber-500'}`}></span>
+                  <span className="text-slate-500">Blockchain: <span className={`font-medium ${isFullyVerified ? 'text-green-700' : 'text-amber-700'}`}>{isFullyVerified ? 'Verified' : 'Not Anchored'}</span></span>
+                </div>
+              </div>
+            </div>
             
-            <div className="mt-8 pt-6 border-t border-slate-100 flex justify-center">
+            <div className="mt-6 pt-4 border-t border-slate-100 flex justify-center">
               <button 
                 onClick={resetVerification}
                 className="text-slate-500 hover:text-slate-800 font-medium px-4 py-2 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-200 rounded"
