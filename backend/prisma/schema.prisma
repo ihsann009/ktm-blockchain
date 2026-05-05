@@ -34,9 +34,12 @@ model Student {
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
 
-  user        User         @relation(fields: [userId], references: [id])
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   credentials Credential[]
 
+  @@index([faculty])
+  @@index([academicStatus])
+  @@index([enrollmentYear])
   @@map("students")
 }
 
@@ -54,8 +57,11 @@ model Credential {
   createdAt            DateTime         @default(now()) @map("created_at")
   updatedAt            DateTime         @updatedAt @map("updated_at")
 
-  student Student @relation(fields: [studentId], references: [id])
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
+  @@index([studentId])
+  @@index([status])
+  @@index([credentialHash])
   @@map("credentials")
 }
 
@@ -66,6 +72,8 @@ model VerificationLog {
   result        String   @db.VarChar(30)
   checkedAt     DateTime @default(now()) @map("checked_at")
 
+  @@index([credentialId])
+  @@index([checkedAt])
   @@map("verification_logs")
 }
 
@@ -76,8 +84,11 @@ model ActivityLog {
   description String?  @db.Text
   createdAt   DateTime @default(now()) @map("created_at")
 
-  actor User? @relation(fields: [actorId], references: [id])
+  actor User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
 
+  @@index([actorId])
+  @@index([actionType])
+  @@index([createdAt])
   @@map("activity_logs")
 }
 

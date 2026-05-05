@@ -264,4 +264,48 @@ router.put('/:id', async (req, res, next) => {
   }
 });
 
+router.delete('/:id', async (req, res, next) => {
+  try {
+    const student = await prisma.student.findUnique({
+      where: { id: req.params.id },
+      include: {
+        credentials: {
+          where: { status: 'active' },
+          select: { credentialId: true },
+        },
+      },
+    });
+
+    if (!student) {
+      return res.status(404).json({ error: 'Student not found' });
+    }
+
+    if (student.credentials.length > 0) {
+      return res.status(409).json({
+        error: 'Cannot delete student with active credentials. Revoke all credentials first.',
+        activeCredentials: student.credentials.map((c) => c.credentialId),
+      });
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.student.delete({ where: { id: req.params.id } });
+      await tx.user.delete({ where: { id: student.userId } });
+    });
+
+    await logActivity({
+      actorId: req.user.userId,
+      actionType: 'student_deleted',
+      description: `Student ${student.fullName} (${student.nim}) was deleted`,
+    });
+
+    return res.json({ message: 'Student deleted successfully' });
+  } catch (error) {
+    if (error.code === 'P2025') {
+      return res.status(404).json({ error: 'Student not found' });
+    }
+
+    return next(error);
+  }
+});
+
 module.exports = router;
