@@ -42,163 +42,187 @@ export default function CreateStudentPage() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <div className="flex items-center mb-6">
-        <Link href="/admin/students" className="mr-4 text-slate-500 hover:text-slate-700 transition-colors">
-          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <div className="max-w-2xl mx-auto space-y-6">
+      <div className="flex items-center gap-4">
+        <Link 
+          href="/admin/students" 
+          className="p-2 rounded-full hover:bg-slate-100 text-slate-500 hover:text-slate-900 transition-colors"
+        >
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
         </Link>
-        <h1 className="text-2xl font-bold text-slate-900">Add New Student</h1>
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Tambah Mahasiswa Baru</h1>
+          <p className="text-slate-500 text-sm mt-0.5">Daftarkan mahasiswa untuk diterbitkan KTM Digital</p>
+        </div>
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
-          {error}
+        <div className="card border-red-200 bg-red-50/80 p-4 flex items-center text-red-800 shadow-sm shadow-red-100/50">
+          <svg className="w-5 h-5 mr-3 text-red-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span className="text-sm font-medium">{error}</span>
         </div>
       )}
 
-      <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="card overflow-hidden">
+        <form onSubmit={handleSubmit} className="divide-y divide-slate-100">
+          
+          <div className="p-6 space-y-6">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1" htmlFor="nim">
-                NIM
-              </label>
-              <input
-                id="nim"
-                name="nim"
-                type="text"
-                required
-                className="input-field"
-                value={formData.nim}
-                onChange={handleChange}
-              />
+              <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider mb-4">Data Mahasiswa</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="input-label" htmlFor="nim">
+                    NIM
+                  </label>
+                  <input
+                    id="nim"
+                    name="nim"
+                    type="text"
+                    required
+                    className="input-field"
+                    placeholder="Contoh: 20240001"
+                    value={formData.nim}
+                    onChange={handleChange}
+                  />
+                </div>
+                
+                <div>
+                  <label className="input-label" htmlFor="fullName">
+                    Nama Lengkap
+                  </label>
+                  <input
+                    id="fullName"
+                    name="fullName"
+                    type="text"
+                    required
+                    className="input-field"
+                    placeholder="Sesuai kartu identitas"
+                    value={formData.fullName}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
             </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1" htmlFor="fullName">
-                Full Name
-              </label>
-              <input
-                id="fullName"
-                name="fullName"
-                type="text"
-                required
-                className="input-field"
-                value={formData.fullName}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="md:col-span-1">
-              <label className="block text-sm font-medium text-slate-700 mb-1" htmlFor="faculty">
-                Faculty
-              </label>
-              <input
-                id="faculty"
-                name="faculty"
-                type="text"
-                required
-                className="input-field"
-                value={formData.faculty}
-                onChange={handleChange}
-              />
-            </div>
-            
-            <div className="md:col-span-1">
-              <label className="block text-sm font-medium text-slate-700 mb-1" htmlFor="department">
-                Department
-              </label>
-              <input
-                id="department"
-                name="department"
-                type="text"
-                required
-                className="input-field"
-                value={formData.department}
-                onChange={handleChange}
-              />
-            </div>
-            
-            <div className="md:col-span-1">
-              <label className="block text-sm font-medium text-slate-700 mb-1" htmlFor="enrollmentYear">
-                Enrollment Year
-              </label>
-              <input
-                id="enrollmentYear"
-                name="enrollmentYear"
-                type="number"
-                min="2000"
-                max="2100"
-                required
-                className="input-field"
-                value={formData.enrollmentYear}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
-
-          <div className="border-t border-slate-200 pt-6">
-            <h3 className="text-lg font-medium text-slate-900 mb-4">Account Information</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1" htmlFor="email">
-                  Email
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="md:col-span-1">
+                <label className="input-label" htmlFor="faculty">
+                  Fakultas
                 </label>
                 <input
-                  id="email"
-                  name="email"
-                  type="email"
+                  id="faculty"
+                  name="faculty"
+                  type="text"
                   required
                   className="input-field"
-                  value={formData.email}
+                  placeholder="Ilmu Komputer"
+                  value={formData.faculty}
                   onChange={handleChange}
                 />
               </div>
               
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1" htmlFor="password">
-                  Initial Password
+              <div className="md:col-span-1">
+                <label className="input-label" htmlFor="department">
+                  Program Studi
                 </label>
                 <input
-                  id="password"
-                  name="password"
-                  type="password"
+                  id="department"
+                  name="department"
+                  type="text"
                   required
                   className="input-field"
-                  value={formData.password}
+                  placeholder="Teknik Informatika"
+                  value={formData.department}
+                  onChange={handleChange}
+                />
+              </div>
+              
+              <div className="md:col-span-1">
+                <label className="input-label" htmlFor="enrollmentYear">
+                  Tahun Masuk
+                </label>
+                <input
+                  id="enrollmentYear"
+                  name="enrollmentYear"
+                  type="number"
+                  min="2000"
+                  max="2100"
+                  required
+                  className="input-field"
+                  value={formData.enrollmentYear}
                   onChange={handleChange}
                 />
               </div>
             </div>
           </div>
 
-          <div className="flex justify-end pt-4">
+          
+          <div className="p-6 bg-slate-50/50 space-y-6">
+            <div>
+              <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider mb-4">Informasi Akun</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="input-label" htmlFor="email">
+                    Email Mahasiswa
+                  </label>
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    required
+                    className="input-field bg-white"
+                    placeholder="mhs@kampus.ac.id"
+                    value={formData.email}
+                    onChange={handleChange}
+                  />
+                </div>
+                
+                <div>
+                  <label className="input-label" htmlFor="password">
+                    Password Awal
+                  </label>
+                  <input
+                    id="password"
+                    name="password"
+                    type="password"
+                    required
+                    className="input-field bg-white"
+                    placeholder="Minimal 6 karakter"
+                    value={formData.password}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          
+          <div className="p-6 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-3">
             <Link 
               href="/admin/students"
-              className="py-2 px-4 border border-slate-300 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 mr-3 transition-colors"
+              className="btn-secondary"
             >
-              Cancel
+              Batal
             </Link>
             <button
               type="submit"
               disabled={loading}
-              className="btn-primary w-auto"
+              className="btn-primary min-w-[120px]"
             >
               {loading ? (
-                <span className="flex items-center">
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <>
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  Saving...
-                </span>
+                  Menyimpan...
+                </>
               ) : (
-                'Save Student'
+                'Simpan Data'
               )}
             </button>
           </div>
@@ -207,3 +231,4 @@ export default function CreateStudentPage() {
     </div>
   );
 }
+

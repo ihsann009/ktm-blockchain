@@ -38,48 +38,70 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="flex h-64 items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+      <div className="space-y-6">
+        <div>
+          <div className="h-8 w-48 bg-slate-200 rounded animate-pulse mb-2"></div>
+          <div className="h-4 w-72 bg-slate-200 rounded animate-pulse"></div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="card h-28 animate-pulse flex items-center p-6">
+              <div className="h-12 w-12 rounded-full bg-slate-200 mr-4"></div>
+              <div className="space-y-2">
+                <div className="h-4 w-24 bg-slate-200 rounded"></div>
+                <div className="h-6 w-16 bg-slate-200 rounded"></div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-        {error}
+      <div className="card border-red-200 bg-red-50/50 p-6">
+        <div className="flex items-center text-red-700">
+          <svg className="w-6 h-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span className="font-medium">{error}</span>
+        </div>
       </div>
     );
   }
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-slate-900 mb-6">Dashboard Overview</h1>
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Dashboard</h1>
+        <p className="text-slate-500 mt-1">Overview of your credential management system</p>
+      </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard 
           title="Total Students" 
           value={stats.totalStudents} 
           icon={<UsersIcon className="h-6 w-6 text-primary-600" />} 
-          color="bg-primary-50"
+          color="bg-primary-50 text-primary-600 ring-primary-100"
         />
         <StatCard 
           title="Total Credentials" 
           value={stats.totalCredentials} 
           icon={<DocumentIcon className="h-6 w-6 text-blue-600" />} 
-          color="bg-blue-50"
+          color="bg-blue-50 text-blue-600 ring-blue-100"
         />
         <StatCard 
           title="Active Credentials" 
           value={stats.activeCredentials} 
           icon={<CheckBadgeIcon className="h-6 w-6 text-green-600" />} 
-          color="bg-green-50"
+          color="bg-green-50 text-green-600 ring-green-100"
         />
         <StatCard 
           title="Revoked Credentials" 
           value={stats.revokedCredentials} 
           icon={<XCircleIcon className="h-6 w-6 text-red-600" />} 
-          color="bg-red-50"
+          color="bg-red-50 text-red-600 ring-red-100"
         />
       </div>
     </div>
@@ -88,13 +110,13 @@ export default function AdminDashboard() {
 
 function StatCard({ title, value, icon, color }) {
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6 flex items-center">
-      <div className={`p-3 rounded-full ${color} mr-4`}>
+    <div className="card card-hover p-6 flex items-center transition-all duration-200">
+      <div className={`p-3 rounded-xl ring-1 ring-inset ${color} mr-5`}>
         {icon}
       </div>
       <div>
-        <p className="text-sm font-medium text-slate-500">{title}</p>
-        <p className="text-2xl font-semibold text-slate-900">{value}</p>
+        <p className="text-sm font-medium text-slate-500 mb-1">{title}</p>
+        <p className="text-3xl font-bold text-slate-900 tracking-tight">{value}</p>
       </div>
     </div>
   );

@@ -77,35 +77,67 @@ export default function StudentDetailPage() {
 
   if (loading) {
     return (
-      <div className="flex h-64 items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+      <div className="max-w-4xl mx-auto space-y-6">
+        <div className="flex items-center gap-4">
+          <div className="h-10 w-10 bg-slate-200 rounded-full animate-pulse"></div>
+          <div className="h-8 w-48 bg-slate-200 rounded animate-pulse"></div>
+        </div>
+        <div className="card p-6 min-h-[300px] flex items-center justify-center">
+          <div className="spinner h-8 w-8 text-primary-600"></div>
+        </div>
       </div>
     );
   }
 
   if (error || !student) {
     return (
-      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-        {error || 'Student not found'}
+      <div className="max-w-4xl mx-auto">
+        <div className="card border-red-200 bg-red-50/50 p-6 flex flex-col items-center justify-center text-center">
+          <div className="h-12 w-12 rounded-full bg-red-100 flex items-center justify-center mb-4">
+            <svg className="w-6 h-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-medium text-slate-900 mb-1">Error Loading Data</h3>
+          <p className="text-slate-500 mb-4">{error || 'Student not found'}</p>
+          <Link href="/admin/students" className="btn-secondary">
+            Back to Students
+          </Link>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="flex items-center mb-6">
-        <Link href="/admin/students" className="mr-4 text-slate-500 hover:text-slate-700 transition-colors">
-          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <div className="max-w-4xl mx-auto space-y-8">
+      
+      <div className="flex items-center gap-4">
+        <Link 
+          href="/admin/students" 
+          className="p-2 rounded-full hover:bg-slate-100 text-slate-500 hover:text-slate-900 transition-colors"
+        >
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
         </Link>
-        <h1 className="text-2xl font-bold text-slate-900">Student Details</h1>
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Detail Mahasiswa</h1>
+          <p className="text-slate-500 text-sm mt-0.5">{student.nim} • {student.fullName}</p>
+        </div>
       </div>
 
       {actionError && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6 flex justify-between items-center">
-          <span>{actionError}</span>
-          <button onClick={() => setActionError(null)} className="text-red-500 hover:text-red-700">
+        <div className="card border-red-200 bg-red-50/80 p-4 flex justify-between items-center text-red-800 shadow-sm shadow-red-100/50">
+          <div className="flex items-center gap-3">
+            <svg className="w-5 h-5 text-red-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="text-sm font-medium">{actionError}</span>
+          </div>
+          <button 
+            onClick={() => setActionError(null)} 
+            className="p-1 rounded-md text-red-500 hover:bg-red-100 transition-colors"
+          >
             <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
             </svg>
@@ -113,41 +145,45 @@ export default function StudentDetailPage() {
         </div>
       )}
 
-      <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8">
-        <div className="px-6 py-5 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-          <h3 className="text-lg leading-6 font-medium text-slate-900">Personal Information</h3>
-          <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-            student.academicStatus === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-          }`}>
+      
+      <div className="card overflow-hidden">
+        <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+          <h3 className="font-semibold text-slate-900 flex items-center gap-2">
+            <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            Informasi Pribadi
+          </h3>
+          <span className={student.academicStatus === 'active' ? 'badge-green' : 'badge-red'}>
             {student.academicStatus || 'Unknown'}
           </span>
         </div>
-        <div className="px-6 py-5">
-          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-6">
-            <div className="sm:col-span-1">
-              <dt className="text-sm font-medium text-slate-500">Full Name</dt>
-              <dd className="mt-1 text-sm text-slate-900">{student.fullName}</dd>
+        <div className="p-6">
+          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
+            <div className="space-y-1">
+              <dt className="text-xs font-medium text-slate-500 uppercase tracking-wider">Nama Lengkap</dt>
+              <dd className="text-sm font-medium text-slate-900">{student.fullName}</dd>
             </div>
-            <div className="sm:col-span-1">
-              <dt className="text-sm font-medium text-slate-500">NIM</dt>
-              <dd className="mt-1 text-sm text-slate-900">{student.nim}</dd>
+            <div className="space-y-1">
+              <dt className="text-xs font-medium text-slate-500 uppercase tracking-wider">NIM</dt>
+              <dd className="text-sm font-medium text-slate-900">{student.nim}</dd>
             </div>
-            <div className="sm:col-span-1">
-              <dt className="text-sm font-medium text-slate-500">Faculty</dt>
-              <dd className="mt-1 text-sm text-slate-900">{student.faculty}</dd>
+            <div className="space-y-1">
+              <dt className="text-xs font-medium text-slate-500 uppercase tracking-wider">Fakultas</dt>
+              <dd className="text-sm font-medium text-slate-900">{student.faculty}</dd>
             </div>
-            <div className="sm:col-span-1">
-              <dt className="text-sm font-medium text-slate-500">Department</dt>
-              <dd className="mt-1 text-sm text-slate-900">{student.department}</dd>
+            <div className="space-y-1">
+              <dt className="text-xs font-medium text-slate-500 uppercase tracking-wider">Program Studi</dt>
+              <dd className="text-sm font-medium text-slate-900">{student.department}</dd>
             </div>
-            <div className="sm:col-span-1">
-              <dt className="text-sm font-medium text-slate-500">Enrollment Year</dt>
-              <dd className="mt-1 text-sm text-slate-900">{student.enrollmentYear}</dd>
+            <div className="space-y-1">
+              <dt className="text-xs font-medium text-slate-500 uppercase tracking-wider">Tahun Masuk</dt>
+              <dd className="text-sm font-medium text-slate-900">{student.enrollmentYear}</dd>
             </div>
             {student.photoPath && (
-              <div className="sm:col-span-1">
-                <dt className="text-sm font-medium text-slate-500">Photo</dt>
-                <dd className="mt-1 text-sm text-slate-900 truncate" title={student.photoPath}>
+              <div className="space-y-1">
+                <dt className="text-xs font-medium text-slate-500 uppercase tracking-wider">Foto</dt>
+                <dd className="text-sm font-medium text-slate-900 truncate" title={student.photoPath}>
                   {student.photoPath}
                 </dd>
               </div>
@@ -156,100 +192,138 @@ export default function StudentDetailPage() {
         </div>
       </div>
 
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-xl font-bold text-slate-900">Credentials</h3>
-        <button
-          onClick={handleIssueCredential}
-          disabled={actionLoading}
-          className="btn-primary w-auto py-2 px-4 inline-flex items-center"
-        >
-          {actionLoading ? (
-            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-          ) : (
-            <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-          )}
-          Issue New Credential
-        </button>
-      </div>
+      
+      <div className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h3 className="text-lg font-bold text-slate-900 tracking-tight">Credentials</h3>
+            <p className="text-slate-500 text-sm mt-0.5">Riwayat KTM digital untuk mahasiswa ini</p>
+          </div>
+          <button
+            onClick={handleIssueCredential}
+            disabled={actionLoading}
+            className="btn-primary w-full sm:w-auto"
+          >
+            {actionLoading ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Memproses...
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Issue New Credential
+              </>
+            )}
+          </button>
+        </div>
 
-      <div className="bg-white shadow-sm rounded-lg border border-slate-200 overflow-hidden">
         {credentials.length === 0 ? (
-          <div className="px-6 py-12 text-center text-slate-500">
-            No credentials found for this student.
+          <div className="card p-12 flex flex-col items-center justify-center text-center bg-slate-50/50 border-dashed">
+            <div className="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+              <svg className="w-6 h-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <h4 className="text-slate-900 font-medium mb-1">Belum ada credential</h4>
+            <p className="text-slate-500 text-sm">Klik tombol di atas untuk menerbitkan KTM digital pertama.</p>
           </div>
         ) : (
-          <ul className="divide-y divide-slate-200">
+          <div className="grid gap-4">
             {credentials.map((cred) => (
-              <li key={cred.id || cred.credentialId} className="px-6 py-5">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-slate-900 truncate">
-                      ID: {cred.credentialId}
-                    </p>
-                    <div className="mt-2 flex items-center text-sm text-slate-500">
-                      <svg className="flex-shrink-0 mr-1.5 h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                      <span className="mr-4">
-                        Issued: {new Date(cred.issuanceDate).toLocaleDateString()}
-                      </span>
-                      <svg className="flex-shrink-0 mr-1.5 h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <span>
-                        Expires: {new Date(cred.expirationDate).toLocaleDateString()}
-                      </span>
+              <div key={cred.id || cred.credentialId} className="card p-5 hover:border-slate-300 transition-colors">
+                <div className="flex flex-col sm:flex-row gap-6">
+                  
+                  <div className="flex-1 space-y-4">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Credential ID</span>
+                        <div className="h-px bg-slate-200 flex-1"></div>
+                      </div>
+                      <p className="font-mono text-sm text-slate-700 bg-slate-50 px-2 py-1 rounded inline-block">
+                        {cred.credentialId.substring(0, 18)}...
+                      </p>
                     </div>
+                    
+                    <div className="flex flex-wrap items-center gap-y-2 gap-x-6 text-sm">
+                      <div className="flex items-center text-slate-600">
+                        <svg className="w-4 h-4 mr-2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span className="font-medium mr-1">Issued:</span>
+                        {new Date(cred.issuanceDate).toLocaleDateString()}
+                      </div>
+                      <div className="flex items-center text-slate-600">
+                        <svg className="w-4 h-4 mr-2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span className="font-medium mr-1">Expires:</span>
+                        {new Date(cred.expirationDate).toLocaleDateString()}
+                      </div>
+                    </div>
+
                     {cred.blockchainTxHash && (
-                      <div className="mt-2 text-sm text-slate-500 flex items-center">
-                        <svg className="flex-shrink-0 mr-1.5 h-5 w-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <div className="flex items-center text-sm text-slate-600 bg-blue-50/50 px-3 py-2 rounded-md border border-blue-100">
+                        <svg className="w-4 h-4 mr-2 text-blue-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                         </svg>
-                        <span className="truncate" title={cred.blockchainTxHash}>
-                          Tx: {cred.blockchainTxHash}
+                        <span className="font-medium mr-2">Tx:</span>
+                        <span className="font-mono text-xs truncate" title={cred.blockchainTxHash}>
+                          {cred.blockchainTxHash}
                         </span>
                       </div>
                     )}
                   </div>
-                  <div className="ml-4 flex flex-col items-end gap-2">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      cred.status === 'active' ? 'bg-green-100 text-green-800' : 
-                      cred.status === 'revoked' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {cred.status}
-                    </span>
 
-                    {cred.blockchainTxHash ? (
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                        ⛓ On-Chain
+                  
+                  <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-3 border-t sm:border-t-0 sm:border-l border-slate-100 pt-4 sm:pt-0 sm:pl-6 min-w-[140px]">
+                    <div className="flex flex-col gap-2 items-start sm:items-end">
+                      <span className={
+                        cred.status === 'active' ? 'badge-green' : 
+                        cred.status === 'revoked' ? 'badge-red' : 'badge-yellow'
+                      }>
+                        {cred.status}
                       </span>
-                    ) : (
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-amber-100 text-amber-800">
-                        ⏳ Pending Anchor
-                      </span>
-                    )}
+
+                      {cred.blockchainTxHash ? (
+                        <span className="badge-blue flex items-center gap-1">
+                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          On-Chain
+                        </span>
+                      ) : (
+                        <span className="badge-yellow flex items-center gap-1">
+                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          Pending
+                        </span>
+                      )}
+                    </div>
                     
                     {cred.status === 'active' && (
                       <button
                         onClick={() => handleRevokeCredential(cred.credentialId)}
                         disabled={actionLoading}
-                        className="text-sm font-medium text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="btn-danger w-full sm:w-auto mt-auto"
                       >
-                        Revoke
+                        {actionLoading ? 'Memproses...' : 'Revoke'}
                       </button>
                     )}
                   </div>
                 </div>
-              </li>
+              </div>
             ))}
-          </ul>
+          </div>
         )}
       </div>
     </div>
   );
 }
+
