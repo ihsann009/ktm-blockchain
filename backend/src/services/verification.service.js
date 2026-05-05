@@ -35,6 +35,7 @@ async function verifyCredential(credentialId) {
   try {
     const verified = await jwtVerify(jwtString, publicKey, {
       algorithms: ['ES256K'],
+      issuer: process.env.ISSUER_URL || undefined,
     });
     payload = verified.payload;
   } catch (err) {
@@ -46,6 +47,24 @@ async function verifyCredential(credentialId) {
         student: mapStudentResponse(credential.student),
       };
     }
+    await logVerification(credentialId, RESULT.INVALID_SIGNATURE);
+    return {
+      result: RESULT.INVALID_SIGNATURE,
+      credential: mapCredentialResponse(credential),
+      student: null,
+    };
+  }
+
+  if (payload.sub && credential.student && payload.sub !== credential.student.nim) {
+    await logVerification(credentialId, RESULT.INVALID_SIGNATURE);
+    return {
+      result: RESULT.INVALID_SIGNATURE,
+      credential: mapCredentialResponse(credential),
+      student: null,
+    };
+  }
+
+  if (payload.jti && payload.jti !== credentialId) {
     await logVerification(credentialId, RESULT.INVALID_SIGNATURE);
     return {
       result: RESULT.INVALID_SIGNATURE,
