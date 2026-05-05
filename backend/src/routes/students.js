@@ -5,6 +5,7 @@ const prisma = require('../config/database');
 const { authenticate } = require('../middleware/auth');
 const { roleGuard } = require('../middleware/roleGuard');
 const { logActivity } = require('../services/activity.service');
+const { validatePassword } = require('../utils/validation');
 
 const router = express.Router();
 
@@ -105,6 +106,11 @@ router.post('/', async (req, res, next) => {
       return res.status(400).json({
         error: 'email, password, nim, fullName, faculty, department, and enrollmentYear are required',
       });
+    }
+
+    const passwordCheck = validatePassword(password);
+    if (!passwordCheck.valid) {
+      return res.status(400).json({ error: passwordCheck.message });
     }
 
     const parsedEnrollmentYear = Number.parseInt(enrollmentYear, 10);

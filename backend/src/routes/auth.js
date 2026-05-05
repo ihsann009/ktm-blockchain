@@ -71,11 +71,21 @@ router.post('/login', async (req, res, next) => {
     }
 
     if (!user) {
+      await logActivity({
+        actorId: null,
+        actionType: 'login_failed',
+        description: `Failed login attempt for ${email || nim} (user not found)`,
+      });
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
     const passwordMatches = await bcrypt.compare(password, user.passwordHash);
     if (!passwordMatches) {
+      await logActivity({
+        actorId: user.id,
+        actionType: 'login_failed',
+        description: `Failed login attempt for ${user.email} (wrong password)`,
+      });
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
