@@ -61,4 +61,15 @@ export const api = {
     });
     return handleResponse(response);
   },
+
+  upload: async (url, formData) => {
+    const response = await fetch(`${API_BASE_URL}${url}`, {
+      method: 'POST',
+      headers: {
+        ...getAuthHeaders(),
+      },
+      body: formData,
+    });
+    return handleResponse(response);
+  },
 };

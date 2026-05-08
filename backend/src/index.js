@@ -1,4 +1,5 @@
 require('dotenv').config();
+const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -50,6 +51,8 @@ const verifyLimiter = rateLimit({
 
 app.use('/api/auth/login', loginLimiter);
 app.use('/api/verify', verifyLimiter);
+
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/students', studentRoutes);

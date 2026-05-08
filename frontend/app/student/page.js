@@ -171,9 +171,17 @@ export default function StudentCardPage() {
                 <div className="-mt-16 z-10 flex-shrink-0 self-start sm:self-auto">
                   <div className="w-32 h-32 md:w-36 md:h-36 bg-white p-2 rounded-full shadow-sm border border-slate-100 group-hover:-translate-y-1 transition-transform duration-300">
                     <div className="w-full h-full bg-slate-100 rounded-full overflow-hidden relative flex items-center justify-center border border-slate-200 shadow-inner">
-                      <span className="text-5xl font-bold text-slate-300">
-                        {student.fullName?.charAt(0)}
-                      </span>
+                      {student.photoPath ? (
+                        <img
+                          src={`${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:3001'}/${student.photoPath}`}
+                          alt={student.fullName}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-5xl font-bold text-slate-300">
+                          {student.fullName?.charAt(0)}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>

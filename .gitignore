@@ -35,5 +35,8 @@ npm-debug.log*
 # Coverage
 coverage/
 
+# Uploads
+backend/uploads/
+
 # Docker volumes
 pgdata/

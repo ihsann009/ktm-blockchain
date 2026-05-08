@@ -1,11 +1,42 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
 const prisma = require('../config/database');
 const { authenticate } = require('../middleware/auth');
 const { roleGuard } = require('../middleware/roleGuard');
 const { logActivity } = require('../services/activity.service');
 const { validatePassword } = require('../utils/validation');
+
+const uploadDir = path.join(__dirname, '..', '..', 'uploads', 'photos');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadDir),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    const filename = `${req.params.id}-${Date.now()}${ext}`;
+    cb(null, filename);
+  },
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 2 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowed = ['.jpg', '.jpeg', '.png', '.webp'];
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (allowed.includes(ext)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only .jpg, .jpeg, .png, .webp files are allowed'));
+    }
+  },
+});
 
 const router = express.Router();
 
@@ -310,6 +341,53 @@ router.delete('/:id', async (req, res, next) => {
       return res.status(404).json({ error: 'Student not found' });
     }
 
+    return next(error);
+  }
+});
+
+router.post('/:id/photo', upload.single('photo'), async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No photo file uploaded' });
+    }
+
+    const student = await prisma.student.findUnique({
+      where: { id: req.params.id },
+    });
+
+    if (!student) {
+      fs.unlinkSync(req.file.path);
+      return res.status(404).json({ error: 'Student not found' });
+    }
+
+    if (student.photoPath) {
+      const oldPath = path.join(__dirname, '..', '..', student.photoPath);
+      if (fs.existsSync(oldPath)) {
+        fs.unlinkSync(oldPath);
+      }
+    }
+
+    const photoPath = `uploads/photos/${req.file.filename}`;
+
+    await prisma.student.update({
+      where: { id: req.params.id },
+      data: { photoPath },
+    });
+
+    await logActivity({
+      actorId: req.user.userId,
+      actionType: 'student_updated',
+      description: `Photo uploaded for student ${student.fullName} (${student.nim})`,
+    });
+
+    return res.json({
+      data: { photoPath },
+      message: 'Photo uploaded successfully',
+    });
+  } catch (error) {
+    if (error.message && error.message.includes('files are allowed')) {
+      return res.status(400).json({ error: error.message });
+    }
     return next(error);
   }
 });

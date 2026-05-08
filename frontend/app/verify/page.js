@@ -134,25 +134,42 @@ function VerifyContent() {
             </h3>
             
             {student ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-8">
-                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                  <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1.5">Nama Lengkap</p>
-                  <p className="font-bold text-slate-900 text-lg">{student.fullName}</p>
+              <div className="flex flex-col sm:flex-row gap-6">
+                <div className="flex-shrink-0">
+                  <div className="w-24 h-32 rounded-lg border border-slate-200 overflow-hidden bg-slate-100 flex items-center justify-center shadow-sm">
+                    {student.photoPath ? (
+                      <img
+                        src={`${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:3001'}/${student.photoPath}`}
+                        alt={student.fullName}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <svg className="w-10 h-10 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    )}
+                  </div>
                 </div>
-                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                  <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1.5">Nomor Induk Mahasiswa</p>
-                  <p className="font-mono font-semibold text-primary-700">{student.nim}</p>
-                </div>
-                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                  <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1.5">Fakultas / Program Studi</p>
-                  <p className="font-semibold text-slate-800">{student.faculty} / {student.department}</p>
-                </div>
-                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                  <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1.5">Status</p>
-                  <p className="font-semibold text-slate-800 capitalize flex items-center gap-2">
-                    <span className={`w-2 h-2 rounded-full ${isFullyVerified ? 'bg-emerald-500' : 'bg-blue-500'} shadow-sm`}></span>
-                    {student.academicStatus || 'Aktif'}
-                  </p>
+                <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-8">
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                    <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1.5">Nama Lengkap</p>
+                    <p className="font-bold text-slate-900 text-lg">{student.fullName}</p>
+                  </div>
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                    <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1.5">Nomor Induk Mahasiswa</p>
+                    <p className="font-mono font-semibold text-primary-700">{student.nim}</p>
+                  </div>
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                    <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1.5">Fakultas / Program Studi</p>
+                    <p className="font-semibold text-slate-800">{student.faculty} / {student.department}</p>
+                  </div>
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                    <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1.5">Status</p>
+                    <p className="font-semibold text-slate-800 capitalize flex items-center gap-2">
+                      <span className={`w-2 h-2 rounded-full ${isFullyVerified ? 'bg-emerald-500' : 'bg-blue-500'} shadow-sm`}></span>
+                      {student.academicStatus || 'Aktif'}
+                    </p>
+                  </div>
                 </div>
               </div>
             ) : (
