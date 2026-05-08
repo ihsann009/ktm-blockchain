@@ -9,6 +9,7 @@ const { authenticate } = require('../middleware/auth');
 const { roleGuard } = require('../middleware/roleGuard');
 const { logActivity } = require('../services/activity.service');
 const { validatePassword } = require('../utils/validation');
+const { issueCredentialForStudent } = require('./credentials');
 
 const uploadDir = path.join(__dirname, '..', '..', 'uploads', 'photos');
 if (!fs.existsSync(uploadDir)) {
@@ -131,6 +132,7 @@ router.post('/', async (req, res, next) => {
       faculty,
       department,
       enrollmentYear,
+      autoIssueCredential,
     } = req.body || {};
 
     if (!email || !password || !nim || !fullName || !faculty || !department || !enrollmentYear) {
@@ -183,7 +185,19 @@ router.post('/', async (req, res, next) => {
       description: `Student ${student.fullName} (${student.nim}) was created`,
     });
 
-    return res.status(201).json({ data: mapStudent(student) });
+    let credential = null;
+    if (autoIssueCredential !== false) {
+      try {
+        credential = await issueCredentialForStudent(student, req.user.userId);
+      } catch (err) {
+        console.error('Auto-issue credential failed:', err.message);
+      }
+    }
+
+    return res.status(201).json({
+      data: mapStudent({ ...student, credentials: credential ? [{ status: credential.status, blockchainTxHash: credential.blockchainTxHash, credentialId: credential.credentialId }] : [] }),
+      credential,
+    });
   } catch (error) {
     if (error.code === 'P2002') {
       return res.status(409).json({ error: 'Student email or NIM already exists' });

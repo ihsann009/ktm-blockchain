@@ -46,6 +46,90 @@ function canAccessStudent(req, studentUserId) {
   return req.user.role === 'admin' || (req.user.role === 'student' && req.user.userId === studentUserId);
 }
 
+/**
+ * Issue a credential for a student. Reusable helper.
+ * @param {object} student - Student record with user.email included
+ * @param {string} actorId - ID of the admin performing the action
+ * @returns {object} The created credential (mapped)
+ */
+async function issueCredentialForStudent(student, actorId) {
+  // Check for existing active credential — auto-revoke if found
+  const existingActive = await prisma.credential.findFirst({
+    where: { studentId: student.id, status: 'active' },
+    orderBy: { issuanceDate: 'desc' },
+  });
+
+  if (existingActive) {
+    // Revoke on blockchain if anchored
+    if (blockchain.isConfigured() && existingActive.blockchainTxHash) {
+      try {
+        await blockchain.revokeOnChain(existingActive.credentialId);
+      } catch (err) {
+        console.error('Blockchain revocation of previous credential failed:', err.message);
+      }
+    }
+
+    // Mark old credential as revoked in DB
+    await prisma.credential.update({
+      where: { id: existingActive.id },
+      data: { status: 'revoked' },
+    });
+
+    await logActivity({
+      actorId,
+      actionType: 'credential_revoked',
+      description: `Credential ${existingActive.credentialId} auto-revoked (replaced by new issuance) for student ${student.nim}`,
+    });
+  }
+
+  const credentialPayload = await generateCredential(student);
+
+  let blockchainTxHash = null;
+  if (blockchain.isConfigured()) {
+    try {
+      blockchainTxHash = await blockchain.anchorCredential(
+        credentialPayload.credentialId,
+        credentialPayload.credentialHash,
+        credentialPayload.issuanceDate,
+        credentialPayload.expirationDate
+      );
+    } catch (err) {
+      console.error('Blockchain anchoring failed:', err.message);
+    }
+  }
+
+  const credential = await prisma.credential.create({
+    data: {
+      studentId: student.id,
+      credentialId: credentialPayload.credentialId,
+      jwtToken: credentialPayload.jwt,
+      credentialHash: credentialPayload.credentialHash,
+      issuanceDate: credentialPayload.issuanceDate,
+      expirationDate: credentialPayload.expirationDate,
+      status: 'active',
+      blockchainTxHash,
+      previousCredentialId: existingActive ? existingActive.credentialId : null,
+    },
+    include: {
+      student: {
+        include: {
+          user: {
+            select: { email: true },
+          },
+        },
+      },
+    },
+  });
+
+  await logActivity({
+    actorId,
+    actionType: 'credential_issued',
+    description: `Credential ${credential.credentialId} issued for student ${student.nim}${existingActive ? ` (replaces ${existingActive.credentialId})` : ''}${blockchainTxHash ? ` (tx: ${blockchainTxHash})` : ' (pending_anchor)'}`,
+  });
+
+  return mapCredential(credential);
+}
+
 router.post('/issue/:studentId', roleGuard('admin'), async (req, res, next) => {
   try {
     const student = await prisma.student.findUnique({
@@ -64,81 +148,8 @@ router.post('/issue/:studentId', roleGuard('admin'), async (req, res, next) => {
       return res.status(404).json({ error: 'Student not found' });
     }
 
-    // Check for existing active credential — auto-revoke if found
-    const existingActive = await prisma.credential.findFirst({
-      where: { studentId: student.id, status: 'active' },
-      orderBy: { issuanceDate: 'desc' },
-    });
-
-    if (existingActive) {
-      // Revoke on blockchain if anchored
-      if (blockchain.isConfigured() && existingActive.blockchainTxHash) {
-        try {
-          await blockchain.revokeOnChain(existingActive.credentialId);
-        } catch (err) {
-          console.error('Blockchain revocation of previous credential failed:', err.message);
-        }
-      }
-
-      // Mark old credential as revoked in DB
-      await prisma.credential.update({
-        where: { id: existingActive.id },
-        data: { status: 'revoked' },
-      });
-
-      await logActivity({
-        actorId: req.user.userId,
-        actionType: 'credential_revoked',
-        description: `Credential ${existingActive.credentialId} auto-revoked (replaced by new issuance) for student ${student.nim}`,
-      });
-    }
-
-    const credentialPayload = await generateCredential(student);
-
-    let blockchainTxHash = null;
-    if (blockchain.isConfigured()) {
-      try {
-        blockchainTxHash = await blockchain.anchorCredential(
-          credentialPayload.credentialId,
-          credentialPayload.credentialHash,
-          credentialPayload.issuanceDate,
-          credentialPayload.expirationDate
-        );
-      } catch (err) {
-        console.error('Blockchain anchoring failed:', err.message);
-      }
-    }
-
-    const credential = await prisma.credential.create({
-      data: {
-        studentId: student.id,
-        credentialId: credentialPayload.credentialId,
-        jwtToken: credentialPayload.jwt,
-        credentialHash: credentialPayload.credentialHash,
-        issuanceDate: credentialPayload.issuanceDate,
-        expirationDate: credentialPayload.expirationDate,
-        status: 'active',
-        blockchainTxHash,
-        previousCredentialId: existingActive ? existingActive.credentialId : null,
-      },
-      include: {
-        student: {
-          include: {
-            user: {
-              select: { email: true },
-            },
-          },
-        },
-      },
-    });
-
-    await logActivity({
-      actorId: req.user.userId,
-      actionType: 'credential_issued',
-      description: `Credential ${credential.credentialId} issued for student ${student.nim}${existingActive ? ` (replaces ${existingActive.credentialId})` : ''}${blockchainTxHash ? ` (tx: ${blockchainTxHash})` : ' (pending_anchor)'}`,
-    });
-
-    return res.status(201).json({ data: mapCredential(credential) });
+    const result = await issueCredentialForStudent(student, req.user.userId);
+    return res.status(201).json({ data: result });
   } catch (error) {
     return next(error);
   }
@@ -370,3 +381,4 @@ router.post('/revoke/:credentialId', roleGuard('admin'), async (req, res, next) 
 });
 
 module.exports = router;
+module.exports.issueCredentialForStudent = issueCredentialForStudent;

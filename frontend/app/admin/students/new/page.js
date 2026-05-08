@@ -12,6 +12,7 @@ export default function CreateStudentPage() {
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
   const fileInputRef = useRef(null);
+  const [autoIssue, setAutoIssue] = useState(true);
   const [formData, setFormData] = useState({
     nim: '',
     fullName: '',
@@ -55,7 +56,7 @@ export default function CreateStudentPage() {
     setError(null);
 
     try {
-      const result = await api.post('/students', formData);
+      const result = await api.post('/students', { ...formData, autoIssueCredential: autoIssue });
 
       if (photoFile && result.data?.id) {
         const fd = new FormData();
@@ -262,6 +263,25 @@ export default function CreateStudentPage() {
                 </div>
               </div>
             </div>
+          </div>
+
+          <div className="p-6 border-t border-slate-100">
+            <label className="flex items-start gap-3 cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={autoIssue}
+                onChange={(e) => setAutoIssue(e.target.checked)}
+                className="mt-0.5 w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+              />
+              <div>
+                <span className="text-sm font-medium text-slate-900 group-hover:text-emerald-700 transition-colors">
+                  Langsung terbitkan credential setelah data tersimpan
+                </span>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  KTM Digital (JWT-VC) akan otomatis diterbitkan dan di-anchor ke blockchain
+                </p>
+              </div>
+            </label>
           </div>
 
           
