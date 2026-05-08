@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/api';
@@ -12,8 +12,13 @@ export default function EditStudentPage() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(null);
   const [hasActiveCredential, setHasActiveCredential] = useState(false);
+  const [currentPhoto, setCurrentPhoto] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
+  const [photoFile, setPhotoFile] = useState(null);
+  const fileInputRef = useRef(null);
   const [formData, setFormData] = useState({
     nim: '',
     fullName: '',
@@ -46,6 +51,7 @@ export default function EditStudentPage() {
         };
         setFormData(data);
         setOriginalData(data);
+        setCurrentPhoto(s.photoPath || null);
 
         const activeCredentials = (credentialsRes.data || []).filter(c => c.status === 'active');
         setHasActiveCredential(activeCredentials.length > 0);
@@ -78,6 +84,25 @@ export default function EditStudentPage() {
     return critical;
   };
 
+  const handlePhotoSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      setError('File terlalu besar. Maksimal 2MB.');
+      return;
+    }
+
+    const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowed.includes(file.type)) {
+      setError('Format file tidak didukung. Gunakan JPG, PNG, atau WebP.');
+      return;
+    }
+
+    setPhotoFile(file);
+    setPhotoPreview(URL.createObjectURL(file));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
@@ -93,10 +118,19 @@ export default function EditStudentPage() {
     try {
       setSaving(true);
       await api.put(`/students/${id}`, formData);
+
+      if (photoFile) {
+        setUploading(true);
+        const fd = new FormData();
+        fd.append('photo', photoFile);
+        await api.upload(`/students/${id}/photo`, fd);
+      }
+
       router.push(`/admin/students/${id}`);
     } catch (err) {
       setError(err.message || 'Failed to update student');
       setSaving(false);
+      setUploading(false);
     }
   };
 
@@ -167,6 +201,47 @@ export default function EditStudentPage() {
       <div className="card overflow-hidden">
         <form onSubmit={handleSubmit} className="divide-y divide-slate-100">
           <div className="p-6 space-y-6">
+            <div>
+              <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider mb-4">Foto Mahasiswa</h3>
+              <div className="flex items-center gap-6">
+                <div className="w-24 h-32 rounded-lg border-2 border-dashed border-slate-200 overflow-hidden bg-slate-50 flex items-center justify-center flex-shrink-0">
+                  {photoPreview ? (
+                    <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
+                  ) : currentPhoto ? (
+                    <img
+                      src={`${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:3001'}/${currentPhoto}`}
+                      alt="Current"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <svg className="w-8 h-8 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  )}
+                </div>
+                <div className="flex flex-col gap-2">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="btn-secondary text-sm"
+                  >
+                    <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    {currentPhoto || photoPreview ? 'Ganti Foto' : 'Pilih Foto'}
+                  </button>
+                  <p className="text-xs text-slate-400">JPG, PNG, WebP. Maks 2MB.</p>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".jpg,.jpeg,.png,.webp"
+                    className="hidden"
+                    onChange={handlePhotoSelect}
+                  />
+                </div>
+              </div>
+            </div>
+
             <div>
               <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider mb-4">Data Mahasiswa</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -16,7 +16,7 @@ export default function StudentDetailPage() {
   const [error, setError] = useState(null);
   const [actionError, setActionError] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
-  const [uploading, setUploading] = useState(false);
+
 
   const fetchData = async () => {
     try {
@@ -74,37 +74,6 @@ export default function StudentDetailPage() {
       setActionError(err.message || 'Failed to revoke credential');
     } finally {
       setActionLoading(false);
-    }
-  };
-
-  const handlePhotoUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const maxSize = 2 * 1024 * 1024;
-    if (file.size > maxSize) {
-      setActionError('File terlalu besar. Maksimal 2MB.');
-      return;
-    }
-
-    const allowed = ['image/jpeg', 'image/png', 'image/webp'];
-    if (!allowed.includes(file.type)) {
-      setActionError('Format file tidak didukung. Gunakan JPG, PNG, atau WebP.');
-      return;
-    }
-
-    try {
-      setUploading(true);
-      setActionError(null);
-      const formData = new FormData();
-      formData.append('photo', file);
-      await api.upload(`/students/${id}/photo`, formData);
-      await fetchData();
-    } catch (err) {
-      setActionError(err.message || 'Gagal upload foto');
-    } finally {
-      setUploading(false);
-      e.target.value = '';
     }
   };
 
@@ -201,8 +170,8 @@ export default function StudentDetailPage() {
         </div>
         <div className="p-6">
           <div className="flex flex-col sm:flex-row gap-6">
-            <div className="flex flex-col items-center gap-3">
-              <div className="w-28 h-36 rounded-lg border-2 border-dashed border-slate-200 overflow-hidden bg-slate-50 flex items-center justify-center">
+            <div className="flex-shrink-0">
+              <div className="w-28 h-36 rounded-lg border border-slate-200 overflow-hidden bg-slate-50 flex items-center justify-center">
                 {student.photoPath ? (
                   <img
                     src={`${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:3001'}/${student.photoPath}`}
@@ -215,28 +184,6 @@ export default function StudentDetailPage() {
                   </svg>
                 )}
               </div>
-              <label className="btn-secondary text-xs px-3 py-1.5 cursor-pointer">
-                {uploading ? (
-                  <span className="flex items-center gap-1">
-                    <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
-                    Uploading...
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-1">
-                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    {student.photoPath ? 'Ganti Foto' : 'Upload Foto'}
-                  </span>
-                )}
-                <input
-                  type="file"
-                  accept=".jpg,.jpeg,.png,.webp"
-                  className="hidden"
-                  onChange={handlePhotoUpload}
-                  disabled={uploading}
-                />
-              </label>
             </div>
 
             <dl className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
