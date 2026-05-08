@@ -413,22 +413,8 @@ function VerifyContent() {
               </div>
             </div>
             
-            <div className="max-w-[280px] mx-auto">
-              <div className="relative group">
-                <div className="absolute -inset-1 bg-gradient-to-r from-primary-400 to-emerald-400 rounded-2xl blur opacity-25 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
-                <div className="relative bg-white p-3 rounded-2xl shadow-sm border border-slate-100">
-                  <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-primary-500 rounded-tl-xl -translate-x-1 -translate-y-1 z-10"></div>
-                  <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-primary-500 rounded-tr-xl translate-x-1 -translate-y-1 z-10"></div>
-                  <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-primary-500 rounded-bl-xl -translate-x-1 translate-y-1 z-10"></div>
-                  <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-primary-500 rounded-br-xl translate-x-1 translate-y-1 z-10"></div>
-                  <div className="rounded-xl overflow-hidden bg-slate-900 relative">
-                    <QrScanner onScanSuccess={handleScanSuccess} />
-                    <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                      <div className="w-full h-0.5 bg-primary-400 shadow-[0_0_8px_2px_rgba(16,185,129,0.5)] animate-[scan_2.5s_ease-in-out_infinite]"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+            <div className="max-w-[320px] mx-auto">
+              <QrScanner onScanSuccess={handleScanSuccess} />
             </div>
           </div>
           
