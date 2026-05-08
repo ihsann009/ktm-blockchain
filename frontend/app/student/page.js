@@ -11,6 +11,7 @@ export default function StudentCardPage() {
   const [allCredentials, setAllCredentials] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!user?.student?.id) return;
@@ -63,6 +64,43 @@ export default function StudentCardPage() {
     if (!hash) return 'Pending...';
     if (hash.length <= 14) return hash;
     return `${hash.substring(0, 6)}...${hash.substring(hash.length - 4)}`;
+  };
+
+  const downloadProof = () => {
+    if (!credential) return;
+    const proof = {
+      _description: "Bukti Credential KTM Digital - Simpan file ini sebagai bukti independen",
+      credentialId: credential.credentialId,
+      jwtToken: credential.jwtToken,
+      credentialHash: credential.credentialHash,
+      blockchainTxHash: credential.blockchainTxHash || null,
+      status: credential.status,
+      issuanceDate: credential.issuanceDate,
+      expirationDate: credential.expirationDate,
+      student: {
+        nim: user?.student?.nim,
+        fullName: user?.student?.fullName,
+        faculty: user?.student?.faculty,
+        department: user?.student?.department,
+      },
+      downloadedAt: new Date().toISOString(),
+      verifyInstructions: {
+        step1: "Hitung SHA-256 dari field 'jwtToken' di atas",
+        step2: "Bandingkan hasilnya dengan field 'credentialHash'",
+        step3: "Cek blockchain Polygon Amoy: query contract getCredential(credentialId)",
+        step4: "Hash on-chain harus cocok dengan credentialHash",
+        polygonScan: credential.blockchainTxHash 
+          ? `https://amoy.polygonscan.com/tx/${credential.blockchainTxHash}`
+          : null,
+      }
+    };
+    const blob = new Blob([JSON.stringify(proof, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `credential-proof-${credential.credentialId.substring(0, 8)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const formatDate = (dateString) => {
@@ -239,10 +277,40 @@ export default function StudentCardPage() {
                 </div>
               )}
               
-              <div className="mt-6 pt-5 border-t border-slate-100 w-full flex flex-col gap-1.5">
+               <div className="mt-6 pt-5 border-t border-slate-100 w-full flex flex-col gap-1.5">
                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Credential ID</span>
-                 <span className="text-xs text-slate-600 font-mono break-all bg-slate-50 px-2 py-1.5 rounded-md border border-slate-100">{credential.credentialId}</span>
-              </div>
+                 <div className="flex items-center gap-2">
+                   <span className="text-xs text-slate-600 font-mono break-all bg-slate-50 px-2 py-1.5 rounded-md border border-slate-100 flex-1">{credential.credentialId}</span>
+                   <button
+                     onClick={() => {
+                       navigator.clipboard.writeText(credential.credentialId);
+                       setCopied(true);
+                       setTimeout(() => setCopied(false), 2000);
+                     }}
+                     className="shrink-0 p-1.5 rounded-md hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+                     title="Copy Credential ID"
+                   >
+                     {copied ? (
+                       <svg className="w-4 h-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                     ) : (
+                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                     )}
+                   </button>
+                 </div>
+               </div>
+
+               <div className="mt-4 w-full">
+                 <button
+                   onClick={downloadProof}
+                   className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-primary-50 hover:bg-primary-100 text-primary-700 font-medium text-sm rounded-lg border border-primary-200 transition-colors"
+                 >
+                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                   </svg>
+                   Download Bukti Credential
+                 </button>
+                 <p className="text-[10px] text-slate-400 mt-1.5 text-center">Simpan sebagai bukti independen (JWT + hash + blockchain proof)</p>
+               </div>
             </div>
           </div>
         </div>

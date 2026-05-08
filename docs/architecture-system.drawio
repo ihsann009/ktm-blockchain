@@ -1,0 +1,94 @@
+<mxfile host="app.diagrams.net" modified="2026-05-06T00:00:00.000Z" agent="5.0" version="24.0.0" type="device">
+  <diagram id="system-architecture" name="Arsitektur Sistem">
+    <mxGraphModel dx="1100" dy="780" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="Arsitektur Sistem KTM Digital Blockchain" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=16;fontStyle=1;fontColor=#1a1a1a;" vertex="1" parent="1">
+          <mxGeometry x="310" y="20" width="380" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="L1" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#4CAF50;strokeWidth=2;arcSize=6;" vertex="1" parent="1">
+          <mxGeometry x="150" y="70" width="700" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="L1-label" value="PRESENTATION LAYER — Next.js 14" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=12;fontStyle=1;fontColor=#2E7D32;" vertex="1" parent="1">
+          <mxGeometry x="165" y="75" width="280" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="P1" value="Admin Portal" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#4CAF50;strokeWidth=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="180" y="108" width="130" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="P2" value="Student Portal" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#4CAF50;strokeWidth=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="340" y="108" width="130" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="P3" value="Verifier Portal" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#4CAF50;strokeWidth=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="500" y="108" width="130" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="A1" value="REST API" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;strokeColor=#333333;strokeWidth=2;fontSize=10;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="L1" target="L2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="L2" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1976D2;strokeWidth=2;arcSize=6;" vertex="1" parent="1">
+          <mxGeometry x="150" y="200" width="700" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="L2-label" value="APPLICATION LAYER — Express.js" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=12;fontStyle=1;fontColor=#1565C0;" vertex="1" parent="1">
+          <mxGeometry x="165" y="205" width="280" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="S1" value="Auth + Middleware" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1976D2;strokeWidth=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="180" y="238" width="140" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="S2" value="Credential Service" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1976D2;strokeWidth=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="350" y="238" width="140" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="S3" value="Verification Service" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#1976D2;strokeWidth=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="520" y="238" width="150" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="A2" value="Prisma ORM" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;strokeColor=#F57C00;strokeWidth=2;fontSize=10;exitX=0.3;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="L2" target="L3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="A3" value="ethers.js" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;strokeColor=#7B1FA2;strokeWidth=2;fontSize=10;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="L2" target="L4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="L3" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#F57C00;strokeWidth=2;arcSize=6;" vertex="1" parent="1">
+          <mxGeometry x="150" y="340" width="310" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="L3-label" value="DATA LAYER — PostgreSQL" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=12;fontStyle=1;fontColor=#E65100;" vertex="1" parent="1">
+          <mxGeometry x="165" y="345" width="220" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="D1" value="PostgreSQL" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=8;fillColor=#FFFFFF;strokeColor=#F57C00;strokeWidth=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="185" y="375" width="80" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="D2" value="Off-chain: PII, JWT,&#xa;logs, credentials" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;fontColor=#555555;" vertex="1" parent="1">
+          <mxGeometry x="280" y="380" width="140" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="L4" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EDE7F6;strokeColor=#7B1FA2;strokeWidth=2;arcSize=6;" vertex="1" parent="1">
+          <mxGeometry x="510" y="340" width="340" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="L4-label" value="BLOCKCHAIN LAYER — Polygon Amoy" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=12;fontStyle=1;fontColor=#6A1B9A;" vertex="1" parent="1">
+          <mxGeometry x="525" y="345" width="290" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="B1" value="Smart Contract" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#7B1FA2;strokeWidth=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="540" y="378" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="B2" value="On-chain: hash +&#xa;revocation status" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;fontColor=#7B1FA2;" vertex="1" parent="1">
+          <mxGeometry x="680" y="380" width="140" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="L5" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FCE4EC;strokeColor=#C62828;strokeWidth=2;arcSize=6;" vertex="1" parent="1">
+          <mxGeometry x="150" y="480" width="700" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="L5-label" value="CREDENTIAL LAYER — JWT-VC (W3C VC v1.1)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=12;fontStyle=1;fontColor=#B71C1C;" vertex="1" parent="1">
+          <mxGeometry x="165" y="485" width="350" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="C1" value="ES256K Signing" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#C62828;strokeWidth=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="180" y="518" width="130" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="C2" value="SHA-256 Hashing" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#C62828;strokeWidth=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="340" y="518" width="130" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="C3" value="Verification Pipeline" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#C62828;strokeWidth=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="500" y="518" width="150" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="A4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;strokeColor=#C62828;strokeWidth=1.5;dashed=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="L4" target="L5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

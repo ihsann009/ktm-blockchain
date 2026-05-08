@@ -12,5 +12,8 @@
     "@nomicfoundation/hardhat-toolbox": "^4.0.0",
     "hardhat": "^2.19.0",
     "solhint": "^4.0.0"
+  },
+  "dependencies": {
+    "@nomicfoundation/hardhat-verify": "^2.1.3"
   }
 }
