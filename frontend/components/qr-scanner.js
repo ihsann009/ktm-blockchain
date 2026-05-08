@@ -14,6 +14,12 @@ export default function QrScanner({ onScanSuccess }) {
     setErrorMsg(null);
     setPermissionDenied(false);
 
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setPermissionDenied(true);
+      setErrorMsg('Browser tidak mendukung akses kamera pada koneksi HTTP. Gunakan HTTPS atau localhost di Chrome.');
+      return;
+    }
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
       stream.getTracks().forEach(track => track.stop());
