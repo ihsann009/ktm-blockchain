@@ -6,7 +6,6 @@ import { api } from '@/lib/api';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState(null);
-  const [activity, setActivity] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -14,12 +13,8 @@ export default function AdminDashboard() {
     const fetchDashboard = async () => {
       try {
         setLoading(true);
-        const [statsRes, activityRes] = await Promise.all([
-          api.get('/dashboard/stats'),
-          api.get('/dashboard/activity?limit=8'),
-        ]);
+        const statsRes = await api.get('/dashboard/stats');
         setStats(statsRes);
-        setActivity(activityRes.data || []);
       } catch (err) {
         setError(err.message || 'Failed to fetch dashboard data');
       } finally {
@@ -48,10 +43,6 @@ export default function AdminDashboard() {
             </div>
           ))}
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 card h-64 animate-pulse"></div>
-          <div className="card h-64 animate-pulse"></div>
-        </div>
       </div>
     );
   }
@@ -69,38 +60,56 @@ export default function AdminDashboard() {
     );
   }
 
+  const credentialTotal = stats?.credentials?.total || 0;
+  const credentialActive = stats?.credentials?.active || 0;
+  const credentialRevoked = stats?.credentials?.revoked || 0;
+  const credentialAnchored = stats?.credentials?.anchored || 0;
+  const credentialPending = stats?.credentials?.pendingAnchor || 0;
+
   const statCards = [
     {
       title: 'Total Mahasiswa',
       value: stats?.students?.total || 0,
-      icon: <UsersIcon className="h-6 w-6 text-primary-600" />,
+      icon: <UsersIcon className="h-6 w-6" />,
       color: 'bg-primary-50 text-primary-600 ring-primary-100',
+      iconColor: 'text-primary-600',
     },
     {
       title: 'Credential Aktif',
-      value: stats?.credentials?.active || 0,
-      icon: <CheckBadgeIcon className="h-6 w-6 text-green-600" />,
+      value: credentialActive,
+      icon: <CheckBadgeIcon className="h-6 w-6" />,
       color: 'bg-green-50 text-green-600 ring-green-100',
+      iconColor: 'text-green-600',
     },
     {
-      title: 'Credential Dicabut',
-      value: stats?.credentials?.revoked || 0,
-      icon: <XCircleIcon className="h-6 w-6 text-red-600" />,
-      color: 'bg-red-50 text-red-600 ring-red-100',
+      title: 'On-Chain Anchored',
+      value: credentialAnchored,
+      icon: <ChainIcon className="h-6 w-6" />,
+      color: 'bg-purple-50 text-purple-600 ring-purple-100',
+      iconColor: 'text-purple-600',
     },
     {
       title: 'Total Verifikasi',
       value: stats?.verifications?.total || 0,
-      icon: <ShieldCheckIcon className="h-6 w-6 text-blue-600" />,
+      icon: <ShieldCheckIcon className="h-6 w-6" />,
       color: 'bg-blue-50 text-blue-600 ring-blue-100',
+      iconColor: 'text-blue-600',
     },
   ];
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Dashboard</h1>
-        <p className="text-slate-500 mt-1">Overview sistem manajemen credential KTM Digital</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Dashboard</h1>
+          <p className="text-slate-500 mt-1">Overview sistem manajemen credential KTM Digital</p>
+        </div>
+        <Link href="/admin/students/new" className="btn-primary flex items-center gap-2 shadow-md shadow-primary-600/20">
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+          Tambah Mahasiswa
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -118,104 +127,119 @@ export default function AdminDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 card overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-            <h2 className="font-bold text-slate-900">Aktivitas Terbaru</h2>
-            <Link href="/admin/logs" className="text-sm text-primary-600 hover:text-primary-700 font-medium">
-              Lihat Semua
-            </Link>
+        <div className="lg:col-span-2 space-y-6">
+          <div className="card p-6">
+            <h2 className="font-bold text-slate-900 mb-6 flex items-center gap-2">
+              <svg className="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+              </svg>
+              Credential Status Distribution
+            </h2>
+            <CredentialChart
+              active={credentialActive}
+              revoked={credentialRevoked}
+              expired={stats?.credentials?.expired || 0}
+              total={credentialTotal}
+            />
           </div>
-          <div className="divide-y divide-slate-50">
-            {activity.length === 0 ? (
-              <div className="px-6 py-12 text-center">
-                <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <ClockIcon className="w-6 h-6 text-slate-400" />
-                </div>
-                <p className="text-slate-500 text-sm">Belum ada aktivitas tercatat</p>
-              </div>
-            ) : (
-              activity.map((log) => (
-                <div key={log.id} className="px-6 py-3.5 flex items-center gap-4 hover:bg-slate-50/50 transition-colors">
-                  <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${getActivityColor(log.actionType)}`}>
-                    {getActivityIcon(log.actionType)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-slate-800 font-medium truncate">{log.description || log.actionType}</p>
-                    <p className="text-xs text-slate-400 mt-0.5">{formatRelativeTime(log.createdAt)}</p>
-                  </div>
-                  <span className="badge-slate text-[10px] shrink-0">{formatActionType(log.actionType)}</span>
-                </div>
-              ))
-            )}
+
+          <div className="card p-6">
+            <h2 className="font-bold text-slate-900 mb-6 flex items-center gap-2">
+              <svg className="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+              </svg>
+              Verification Results
+            </h2>
+            <VerificationChart results={stats?.verifications?.byResult || []} total={stats?.verifications?.total || 0} />
           </div>
         </div>
 
         <div className="space-y-6">
           <div className="card p-6">
-            <h2 className="font-bold text-slate-900 mb-4">Quick Actions</h2>
-            <div className="space-y-2.5">
-              <Link href="/admin/students/new" className="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary-50 text-primary-700 hover:bg-primary-100 transition-colors font-medium text-sm group">
-                <div className="w-8 h-8 bg-primary-100 rounded-lg flex items-center justify-center group-hover:bg-primary-200 transition-colors">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                  </svg>
-                </div>
-                Tambah Mahasiswa
-              </Link>
-              <Link href="/admin/students" className="flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-50 text-slate-700 hover:bg-slate-100 transition-colors font-medium text-sm group">
-                <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center group-hover:bg-slate-200 transition-colors">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                </div>
-                Issue Credential
-              </Link>
-              <Link href="/admin/logs" className="flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-50 text-slate-700 hover:bg-slate-100 transition-colors font-medium text-sm group">
-                <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center group-hover:bg-slate-200 transition-colors">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                Lihat Activity Log
-              </Link>
-            </div>
-          </div>
-
-          <div className="card p-6">
             <h2 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
-              <svg className="w-5 h-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg className="w-5 h-5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
               </svg>
-              Blockchain
+              Blockchain Status
             </h2>
-            <div className="space-y-3 text-sm">
+            <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-slate-500">Network</span>
-                <span className="font-medium text-slate-800">{stats?.blockchain?.network || 'N/A'}</span>
+                <span className="text-sm text-slate-500">Network</span>
+                <span className="text-sm font-semibold text-slate-800">{stats?.blockchain?.network || 'N/A'}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-500">Status</span>
+                <span className="text-sm text-slate-500">Status</span>
                 {stats?.blockchain?.configured ? (
                   <span className="badge-green">Connected</span>
                 ) : (
                   <span className="badge-yellow">Not Configured</span>
                 )}
               </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-slate-500">Anchored</span>
+                <span className="text-sm font-bold text-purple-700">{credentialAnchored}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-slate-500">Pending</span>
+                <span className="text-sm font-bold text-amber-700">{credentialPending}</span>
+              </div>
               {stats?.blockchain?.contractAddress && (
-                <div className="pt-2 border-t border-slate-100">
-                  <span className="text-xs text-slate-400 block mb-1">Contract Address</span>
-                  <span className="text-xs font-mono text-slate-600 break-all bg-slate-50 px-2 py-1 rounded border border-slate-100 block">
+                <div className="pt-3 border-t border-slate-100">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1.5">Contract</span>
+                  <span className="text-xs font-mono text-slate-600 break-all bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-100 block">
                     {stats.blockchain.contractAddress}
                   </span>
                 </div>
               )}
               {stats?.blockchain?.issuerAddress && (
-                <div className="pt-2 border-t border-slate-100">
-                  <span className="text-xs text-slate-400 block mb-1">Issuer Wallet</span>
-                  <span className="text-xs font-mono text-slate-600 break-all bg-slate-50 px-2 py-1 rounded border border-slate-100 block">
+                <div className="pt-3 border-t border-slate-100">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1.5">Issuer Wallet</span>
+                  <span className="text-xs font-mono text-slate-600 break-all bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-100 block">
                     {stats.blockchain.issuerAddress}
                   </span>
                 </div>
+              )}
+            </div>
+          </div>
+
+          <div className="card p-6">
+            <h2 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
+              <svg className="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342" />
+              </svg>
+              Distribusi Fakultas
+            </h2>
+            <FacultyList faculties={stats?.facultyDistribution || []} total={stats?.students?.total || 0} />
+          </div>
+
+          <div className="card p-6">
+            <h2 className="font-bold text-slate-900 mb-4">Credential Terbaru</h2>
+            <div className="space-y-3">
+              {(stats?.recentCredentials || []).length === 0 ? (
+                <p className="text-sm text-slate-400 text-center py-4">Belum ada credential</p>
+              ) : (
+                stats.recentCredentials.map((cred) => (
+                  <div key={cred.id} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${cred.status === 'active' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+                      {cred.status === 'active' ? (
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                      ) : (
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-slate-800 truncate">{cred.studentName}</p>
+                      <p className="text-xs text-slate-400">{cred.studentNim}</p>
+                    </div>
+                    {cred.anchored && (
+                      <div className="shrink-0" title="On-chain">
+                        <svg className="w-4 h-4 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                ))
               )}
             </div>
           </div>
@@ -225,51 +249,130 @@ export default function AdminDashboard() {
   );
 }
 
-function getActivityColor(actionType) {
-  switch (actionType) {
-    case 'credential_issued': return 'bg-green-100 text-green-600';
-    case 'credential_revoked': return 'bg-red-100 text-red-600';
-    case 'student_created': return 'bg-blue-100 text-blue-600';
-    case 'student_updated': return 'bg-amber-100 text-amber-600';
-    case 'user_login': return 'bg-slate-100 text-slate-600';
-    default: return 'bg-slate-100 text-slate-500';
+function CredentialChart({ active, revoked, expired, total }) {
+  if (total === 0) {
+    return (
+      <div className="flex items-center justify-center py-8 text-slate-400 text-sm">
+        Belum ada credential yang diterbitkan
+      </div>
+    );
   }
+
+  const segments = [
+    { label: 'Aktif', value: active, color: 'bg-emerald-500', textColor: 'text-emerald-700', bgColor: 'bg-emerald-50' },
+    { label: 'Dicabut', value: revoked, color: 'bg-red-500', textColor: 'text-red-700', bgColor: 'bg-red-50' },
+    { label: 'Kedaluwarsa', value: expired, color: 'bg-amber-500', textColor: 'text-amber-700', bgColor: 'bg-amber-50' },
+  ];
+
+  return (
+    <div className="space-y-5">
+      <div className="flex h-4 rounded-full overflow-hidden bg-slate-100">
+        {segments.map((seg) => {
+          const pct = total > 0 ? (seg.value / total) * 100 : 0;
+          if (pct === 0) return null;
+          return (
+            <div
+              key={seg.label}
+              className={`${seg.color} transition-all duration-700 ease-out`}
+              style={{ width: `${pct}%` }}
+              title={`${seg.label}: ${seg.value} (${pct.toFixed(1)}%)`}
+            />
+          );
+        })}
+      </div>
+      <div className="grid grid-cols-3 gap-4">
+        {segments.map((seg) => {
+          const pct = total > 0 ? ((seg.value / total) * 100).toFixed(0) : 0;
+          return (
+            <div key={seg.label} className={`${seg.bgColor} rounded-xl p-4 text-center`}>
+              <p className={`text-2xl font-bold ${seg.textColor}`}>{seg.value}</p>
+              <p className="text-xs font-medium text-slate-500 mt-1">{seg.label} ({pct}%)</p>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
-function getActivityIcon(actionType) {
-  const cls = "w-4 h-4";
-  switch (actionType) {
-    case 'credential_issued':
-      return <svg className={cls} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
-    case 'credential_revoked':
-      return <svg className={cls} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>;
-    case 'student_created':
-      return <svg className={cls} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>;
-    case 'user_login':
-      return <svg className={cls} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" /></svg>;
-    default:
-      return <svg className={cls} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
+function VerificationChart({ results, total }) {
+  if (total === 0) {
+    return (
+      <div className="flex items-center justify-center py-8 text-slate-400 text-sm">
+        Belum ada verifikasi dilakukan
+      </div>
+    );
   }
+
+  const resultConfig = {
+    valid: { label: 'Valid', color: 'bg-emerald-500', textColor: 'text-emerald-700' },
+    valid_unanchored: { label: 'Valid (Unanchored)', color: 'bg-blue-500', textColor: 'text-blue-700' },
+    not_found: { label: 'Not Found', color: 'bg-slate-400', textColor: 'text-slate-700' },
+    invalid_signature: { label: 'Invalid Signature', color: 'bg-red-500', textColor: 'text-red-700' },
+    hash_mismatch: { label: 'Hash Mismatch', color: 'bg-red-600', textColor: 'text-red-700' },
+    revoked: { label: 'Revoked', color: 'bg-orange-500', textColor: 'text-orange-700' },
+    expired: { label: 'Expired', color: 'bg-amber-500', textColor: 'text-amber-700' },
+  };
+
+  const sorted = [...results].sort((a, b) => b.count - a.count);
+
+  return (
+    <div className="space-y-3">
+      {sorted.map((item) => {
+        const config = resultConfig[item.result] || { label: item.result, color: 'bg-slate-400', textColor: 'text-slate-700' };
+        const pct = total > 0 ? (item.count / total) * 100 : 0;
+        return (
+          <div key={item.result} className="flex items-center gap-4">
+            <div className="w-32 text-sm font-medium text-slate-600 truncate shrink-0">{config.label}</div>
+            <div className="flex-1 h-6 bg-slate-100 rounded-full overflow-hidden relative">
+              <div
+                className={`h-full ${config.color} rounded-full transition-all duration-700 ease-out`}
+                style={{ width: `${Math.max(pct, 2)}%` }}
+              />
+            </div>
+            <div className="w-12 text-right text-sm font-bold text-slate-700 shrink-0">{item.count}</div>
+          </div>
+        );
+      })}
+      <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+        <span className="text-sm text-slate-500">Total Verifikasi</span>
+        <span className="text-lg font-bold text-slate-900">{total}</span>
+      </div>
+    </div>
+  );
 }
 
-function formatActionType(actionType) {
-  return (actionType || '').replace(/_/g, ' ');
-}
+function FacultyList({ faculties, total }) {
+  if (faculties.length === 0) {
+    return <p className="text-sm text-slate-400 text-center py-4">Belum ada data</p>;
+  }
 
-function formatRelativeTime(dateString) {
-  if (!dateString) return '';
-  const now = new Date();
-  const date = new Date(dateString);
-  const diffMs = now - date;
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
+  const colors = ['bg-primary-500', 'bg-blue-500', 'bg-purple-500', 'bg-amber-500', 'bg-pink-500'];
 
-  if (diffMins < 1) return 'Baru saja';
-  if (diffMins < 60) return `${diffMins} menit lalu`;
-  if (diffHours < 24) return `${diffHours} jam lalu`;
-  if (diffDays < 7) return `${diffDays} hari lalu`;
-  return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+  return (
+    <div className="space-y-3">
+      {faculties.slice(0, 5).map((f, i) => {
+        const pct = total > 0 ? (f.count / total) * 100 : 0;
+        return (
+          <div key={f.faculty} className="flex items-center gap-3">
+            <div className={`w-2 h-2 rounded-full ${colors[i % colors.length]} shrink-0`}></div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm text-slate-700 font-medium truncate">{f.faculty}</span>
+                <span className="text-xs font-bold text-slate-500 shrink-0 ml-2">{f.count}</span>
+              </div>
+              <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                <div
+                  className={`h-full ${colors[i % colors.length]} rounded-full transition-all duration-500`}
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
 }
 
 function UsersIcon({ className }) {
@@ -288,10 +391,10 @@ function CheckBadgeIcon({ className }) {
   );
 }
 
-function XCircleIcon({ className }) {
+function ChainIcon({ className }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
     </svg>
   );
 }
@@ -300,14 +403,6 @@ function ShieldCheckIcon({ className }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
-    </svg>
-  );
-}
-
-function ClockIcon({ className }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
   );
 }

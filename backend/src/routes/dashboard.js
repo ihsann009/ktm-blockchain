@@ -9,7 +9,6 @@ const router = express.Router();
 
 router.use(authenticate, roleGuard('admin'));
 
-// GET /api/dashboard/stats — All dashboard statistics
 router.get('/stats', async (req, res, next) => {
   try {
     const [
@@ -19,6 +18,10 @@ router.get('/stats', async (req, res, next) => {
       revokedCredentials,
       expiredCredentials,
       totalVerifications,
+      anchoredCredentials,
+      recentCredentials,
+      facultyDistribution,
+      verificationResults,
     ] = await Promise.all([
       prisma.student.count(),
       prisma.credential.count(),
@@ -26,9 +29,16 @@ router.get('/stats', async (req, res, next) => {
       prisma.credential.count({ where: { status: 'revoked' } }),
       prisma.credential.count({ where: { status: 'expired' } }),
       prisma.verificationLog.count(),
+      prisma.credential.count({ where: { blockchainTxHash: { not: null } } }),
+      prisma.credential.findMany({
+        take: 5,
+        orderBy: { createdAt: 'desc' },
+        include: { student: { select: { fullName: true, nim: true } } },
+      }),
+      prisma.student.groupBy({ by: ['faculty'], _count: { faculty: true }, orderBy: { _count: { faculty: 'desc' } } }),
+      prisma.verificationLog.groupBy({ by: ['result'], _count: { result: true } }),
     ]);
 
-    // Compute issuer address from private key if available
     let issuerAddress = null;
     if (process.env.ISSUER_PRIVATE_KEY) {
       try {
@@ -44,8 +54,23 @@ router.get('/stats', async (req, res, next) => {
         active: activeCredentials,
         revoked: revokedCredentials,
         expired: expiredCredentials,
+        anchored: anchoredCredentials,
+        pendingAnchor: activeCredentials - anchoredCredentials,
       },
-      verifications: { total: totalVerifications },
+      verifications: {
+        total: totalVerifications,
+        byResult: verificationResults.map(v => ({ result: v.result, count: v._count.result })),
+      },
+      recentCredentials: recentCredentials.map(c => ({
+        id: c.id,
+        credentialId: c.credentialId,
+        status: c.status,
+        studentName: c.student?.fullName,
+        studentNim: c.student?.nim,
+        issuedAt: c.issuanceDate,
+        anchored: !!c.blockchainTxHash,
+      })),
+      facultyDistribution: facultyDistribution.map(f => ({ faculty: f.faculty, count: f._count.faculty })),
       blockchain: {
         network: 'Polygon Amoy Testnet',
         chainId: 80002,

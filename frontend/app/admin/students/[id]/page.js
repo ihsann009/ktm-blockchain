@@ -16,7 +16,7 @@ export default function StudentDetailPage() {
   const [error, setError] = useState(null);
   const [actionError, setActionError] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
-
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const fetchData = async () => {
     try {
@@ -166,6 +166,32 @@ export default function StudentDetailPage() {
               </svg>
               Edit
             </Link>
+            <button
+              onClick={async () => {
+                const hasActive = credentials.some(c => c.status === 'active');
+                if (hasActive) {
+                  setActionError('Tidak bisa menghapus mahasiswa yang masih memiliki credential aktif. Cabut credential terlebih dahulu.');
+                  return;
+                }
+                if (!window.confirm(`Hapus mahasiswa ${student.fullName} (${student.nim})? Data akan dihapus permanen.`)) return;
+                try {
+                  setDeleteLoading(true);
+                  await api.delete(`/students/${id}`);
+                  window.location.href = '/admin/students';
+                } catch (err) {
+                  setActionError(err.message || 'Gagal menghapus mahasiswa');
+                } finally {
+                  setDeleteLoading(false);
+                }
+              }}
+              disabled={deleteLoading}
+              className="btn-danger text-xs px-3 py-1.5"
+            >
+              <svg className="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              {deleteLoading ? '...' : 'Hapus'}
+            </button>
           </div>
         </div>
         <div className="p-6">
